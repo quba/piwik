@@ -29,7 +29,7 @@ class Plugins_MobileMessagingTest extends DatabaseTestCase
         // setup the access layer
         $pseudoMockAccess = new FakeAccess;
         FakeAccess::$superUser = true;
-        //finally we set the user as a super user by default
+        //finally we set the user as a Super User by default
         Access::setSingletonInstance($pseudoMockAccess);
 
         $this->idSiteAccess = APISitesManager::getInstance()->addSite("test", "http://test");
@@ -92,7 +92,7 @@ class Plugins_MobileMessagingTest extends DatabaseTestCase
 
         $alternatedGSMx153 = str_repeat('a€', 153);
 
-        $GSMWithRegExpSpecialChars = $stdGSMx459 . '[\^$.|?*+()';
+        $GSMWithRegExpSpecialChars = $stdGSMx459 . '[\^$.|?*/+()';
 
         $UCS2x201 = str_repeat('控', 201);
 
@@ -158,7 +158,7 @@ class Plugins_MobileMessagingTest extends DatabaseTestCase
             array(str_repeat('控', 197) . $UCS2AppendedString, $UCS2x201 . '控', 3, $UCS2AppendedString),
 
             // UCS-2, one '控' too many, appended with standard GSM characters
-            array(str_repeat('控', 193) . $stdGSMAppendedString, $UCS2x201 . '控', 3, $stdGSMAppendedString),
+            array(str_repeat('控', 193) . $stdGSMAppendedString, $UCS2x201 . '控', 3, $stdGSMAppendedString)
         );
     }
 

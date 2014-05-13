@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+<?php
+?><!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
@@ -19,7 +20,7 @@ $sqlite = false;
 if (file_exists("enable_sqlite")) {
 	if (class_exists('SQLite')) {
 		$sqlite = true;
-	} 
+	}
 }
 
 if(!$sqlite) {
@@ -55,7 +56,7 @@ testTrackPageViewAsync();
  <script src="assets/qunit.js" type="text/javascript"></script>
  <script src="jslint/jslint.js" type="text/javascript"></script>
  <script type="text/javascript">
-function _e(id){ 
+function _e(id){
 	if (document.getElementById)
 		return document.getElementById(id);
 	if (document.layers)
@@ -321,7 +322,7 @@ function PiwikTest() {
 	});
 
 	test("API methods", function() {
-		expect(53);
+		expect(54);
 
 		equal( typeof Piwik.addPlugin, 'function', 'addPlugin' );
 		equal( typeof Piwik.getTracker, 'function', 'getTracker' );
@@ -343,6 +344,7 @@ function PiwikTest() {
 		equal( typeof tracker.getAttributionCampaignName, 'function', 'getAttributionCampaignName' );
 		equal( typeof tracker.getAttributionCampaignKeyword, 'function', 'getAttributionCampaignKeyword' );
 		equal( typeof tracker.setTrackerUrl, 'function', 'setTrackerUrl' );
+		equal( typeof tracker.getRequest, 'function', 'getRequest' );
 		equal( typeof tracker.setSiteId, 'function', 'setSiteId' );
 		equal( typeof tracker.setCustomData, 'function', 'setCustomData' );
 		equal( typeof tracker.getCustomData, 'function', 'getCustomData' );
@@ -538,9 +540,9 @@ function PiwikTest() {
 		ok( tracker.hook.test._getProtocolScheme('file://somefile.txt') === 'file', 'file://' );
 		ok( tracker.hook.test._getProtocolScheme('mailto:somebody@example.com') === 'mailto', 'mailto:' );
 		ok( tracker.hook.test._getProtocolScheme('javascript:alert(document.cookie)') === 'javascript', 'javascript:' );
-		ok( tracker.hook.test._getProtocolScheme('') === null, 'empty string' );	
-		ok( tracker.hook.test._getProtocolScheme(':') === null, 'unspecified scheme' );	
-		ok( tracker.hook.test._getProtocolScheme('scheme') === null, 'missing colon' );	
+		ok( tracker.hook.test._getProtocolScheme('') === null, 'empty string' );
+		ok( tracker.hook.test._getProtocolScheme(':') === null, 'unspecified scheme' );
+		ok( tracker.hook.test._getProtocolScheme('scheme') === null, 'missing colon' );
 
 
 		equal( typeof tracker.hook.test._resolveRelativeReference, 'function', 'resolveRelativeReference' );
@@ -667,7 +669,7 @@ function PiwikTest() {
 	});
 
 	test("Tracker setDownloadExtensions(), addDownloadExtensions(), setDownloadClasses(), setLinkClasses(), and getLinkType()", function() {
-		expect(24);
+		expect(25);
 
 		var tracker = Piwik.getTracker();
 
@@ -676,6 +678,7 @@ function PiwikTest() {
 		equal( tracker.hook.test._getLinkType('something', 'goofy.html', false), 'link', 'implicit link' );
 		equal( tracker.hook.test._getLinkType('something', 'goofy.pdf', false), 'download', 'external PDF files are downloads' );
 		equal( tracker.hook.test._getLinkType('something', 'goofy.pdf', true), 'download', 'local PDF are downloads' );
+		equal( tracker.hook.test._getLinkType('something', 'goofy-with-dash.pdf', true), 'download', 'local PDF are downloads' );
 
 		equal( tracker.hook.test._getLinkType('piwik_download', 'piwiktest.ext', true), 'download', 'piwik_download' );
 		equal( tracker.hook.test._getLinkType('abc piwik_download xyz', 'piwiktest.ext', true), 'download', 'abc piwik_download xyz' );
@@ -708,19 +711,28 @@ function PiwikTest() {
 		equal( tracker.hook.test._getLinkType('d abc', 'piwiktest.ext', true), 'link', 'link (d)' );
 	});
 
-	test("utf8_encode(), sha1()", function() {
-		expect(6);
+    test("utf8_encode(), sha1()", function() {
+        expect(6);
 
-		var tracker = Piwik.getTracker();
+        var tracker = Piwik.getTracker();
 
-		equal( typeof tracker.hook.test._utf8_encode, 'function', 'utf8_encode' );
-		equal( tracker.hook.test._utf8_encode('hello world'), '<?php echo utf8_encode("hello world"); ?>', 'utf8_encode("hello world")' );
-		equal( tracker.hook.test._utf8_encode('Gesamtgröße'), '<?php echo utf8_encode("Gesamtgröße"); ?>', 'utf8_encode("Gesamtgröße")' );
-		equal( tracker.hook.test._utf8_encode('您好'), '<?php echo utf8_encode("您好"); ?>', 'utf8_encode("您好")' );
+        equal( typeof tracker.hook.test._utf8_encode, 'function', 'utf8_encode' );
+        equal( tracker.hook.test._utf8_encode('hello world'), '<?php echo utf8_encode("hello world"); ?>', 'utf8_encode("hello world")' );
+        equal( tracker.hook.test._utf8_encode('Gesamtgröße'), '<?php echo utf8_encode("Gesamtgröße"); ?>', 'utf8_encode("Gesamtgröße")' );
+        equal( tracker.hook.test._utf8_encode('您好'), '<?php echo utf8_encode("您好"); ?>', 'utf8_encode("您好")' );
 
-		equal( typeof tracker.hook.test._sha1, 'function', 'sha1' );
-		equal( tracker.hook.test._sha1('hello world'), '<?php echo sha1("hello world"); ?>', 'sha1("hello world")' );
-	});
+        equal( typeof tracker.hook.test._sha1, 'function', 'sha1' );
+        equal( tracker.hook.test._sha1('hello world'), '<?php echo sha1("hello world"); ?>', 'sha1("hello world")' );
+    });
+
+    test("getRequest()", function() {
+        expect(1);
+
+        var tracker = Piwik.getTracker();
+
+        tracker.setCustomData("key is X", "value is Y");
+        equal( tracker.getRequest('hello=world').indexOf('hello=world&idsite=&rec=1&r='), 0);
+    });
 
 	test("prefixPropertyName()", function() {
 		expect(3);
@@ -756,7 +768,7 @@ function PiwikTest() {
 		stopTime = new Date();
 		ok( (stopTime.getTime() - startTime.getTime()) >= 2000, 'setLinkTrackingTimer()' );
 	});
-	
+
 	test("Overlay URL Normalizer", function() {
 		expect(11);
 
@@ -767,15 +779,15 @@ function PiwikTest() {
 				equal(observed, expected, testCases[i][0]);
 			}
 		};
-		
+
 		Piwik_Overlay_UrlNormalizer.initialize();
 		Piwik_Overlay_UrlNormalizer.setExcludedParameters(['excluded1', 'excluded2', 'excluded3']);
-		
+
 		Piwik_Overlay_UrlNormalizer.setBaseHref(false);
-		
+
 		Piwik_Overlay_UrlNormalizer.setCurrentDomain('example.com');
 		Piwik_Overlay_UrlNormalizer.setCurrentUrl('https://www.example.com/current/test.html?asdfasdf');
-		
+
 		test([
 			[
 				'relative/path/',
@@ -785,18 +797,18 @@ function PiwikTest() {
 				'example2.com/path/foo.html'
 			]
 		]);
-		
+
 		Piwik_Overlay_UrlNormalizer.setCurrentDomain('www.example3.com');
 		Piwik_Overlay_UrlNormalizer.setCurrentUrl('http://example3.com/current/folder/');
-		
+
 		test([[
 			'relative.html',
 			'example3.com/current/folder/relative.html'
 		]]);
-		
-		
+
+
 		Piwik_Overlay_UrlNormalizer.setBaseHref('http://example.com/base/');
-		
+
 		test([
 			[
 				'http://www.example2.com/my/test/path.html?id=2&excluded2=foo#MyAnchor',
@@ -828,7 +840,7 @@ function PiwikTest() {
 
 <?php
 if ($sqlite) {
-	echo '
+	?>
 
 	module("request", {
 		setup: function () {
@@ -843,7 +855,7 @@ if ($sqlite) {
 	});
 
 	test("tracking", function() {
-		expect(85);
+		expect(97);
 
 		/*
 		 * Prevent Opera and HtmlUnit from performing the default action (i.e., load the href URL)
@@ -875,7 +887,7 @@ if ($sqlite) {
 				cur = new Date().getTime();
 			}
 		}
-				
+
 		var visitorIdStart = tracker.getVisitorId();
 		// need to wait at least 1 second so that the cookie would be different, if it wasnt persisted
 		wait(2000);
@@ -887,7 +899,7 @@ if ($sqlite) {
 		tracker.setCustomData({ "token" : getToken() });
 		var data = tracker.getCustomData();
 		ok( getToken() != "" && data.token == data["token"] && data.token == getToken(), "setCustomData() , getCustomData()" );
-		
+
 		// Custom variables with integer/float values
 		tracker.setCustomVariable(1, 1, 2, "visit");
 		deepEqual( tracker.getCustomVariable(1, "visit"), ["1", "2"], "setCustomVariable() with integer name/value" );
@@ -895,9 +907,17 @@ if ($sqlite) {
 		deepEqual( tracker.getCustomVariable(1, "visit"), ["1", "0"], "setCustomVariable() with integer name/value" );
 		tracker.setCustomVariable(2, 1.05, 2.11, "visit");
 		deepEqual( tracker.getCustomVariable(2, "visit"), ["1.05", "2.11"], "setCustomVariable() with integer name/value" );
-		
+
+        // custom variables with undefined names or values
+        tracker.setCustomVariable(5);// setting a custom variable with no name and no value should not error
+        deepEqual( tracker.getCustomVariable(5), false, "getting a custom variable with no name nor value" );
+        deepEqual( tracker.getCustomVariable(55), false, "getting a custom variable with no name nor value" );
+        tracker.setCustomVariable(5, "new name");
+        deepEqual( tracker.getCustomVariable(5), ["new name", ""], "getting a custom variable with no value" );
+        tracker.deleteCustomVariable(5);
+
 		tracker.setDocumentTitle("PiwikTest");
-		
+
 		var referrerUrl = "http://referrer.example.com/page/sub?query=test&test2=test3";
 		tracker.setReferrerUrl(referrerUrl);
 
@@ -975,7 +995,7 @@ if ($sqlite) {
 		for (var i = 0; i < 6; i++) {
 			ok( visitorInfo1[i] == visitorInfo2[i], "(loadVisitorId())["+i+"]" );
 		}
-		
+
 		attributionInfo2 = tracker.getAttributionInfo();
 		ok( attributionInfo1 && attributionInfo2 && attributionInfo1.length == attributionInfo2.length, "getAttributionInfo()" );
 		referrer2 = tracker.getAttributionReferrerUrl();
@@ -987,15 +1007,15 @@ if ($sqlite) {
 		campaignKeyword2 = tracker.getAttributionCampaignKeyword();
 		ok( campaignName2 == "YEAH", "getAttributionCampaignName()");
 		ok( campaignKeyword2 == "RIGHT!", "getAttributionCampaignKeyword()");
-		
+
 
 		// Test visitor ID at the start is the same at the end
 		var visitorIdEnd = tracker.getVisitorId();
 		ok( visitorIdStart == visitorIdEnd, "tracker.getVisitorId() same at the start and end of process");
-		
+
 		// Custom variables
 		tracker.setCookieNamePrefix("PREFIX");
-		tracker.setCustomVariable(1, "cookiename", "cookievalue");
+        tracker.setCustomVariable(1, "cookiename", "cookievalue");
 		deepEqual( tracker.getCustomVariable(1), ["cookiename", "cookievalue"], "setCustomVariable(cvarExists), getCustomVariable()" );
 		tracker.setCustomVariable(2, "cookiename2", "cookievalue2", "visit");
 		deepEqual( tracker.getCustomVariable(2), ["cookiename2", "cookievalue2"], "setCustomVariable(cvarExists), getCustomVariable()" );
@@ -1027,7 +1047,7 @@ if ($sqlite) {
 		deepEqual( tracker.getCustomVariable(4, "page"), ["_pkn",""], "Ecommerce view Name");
 		deepEqual( tracker.getCustomVariable(5, "page"), ["_pkc","[\"CATEGORY1\",\"CATEGORY2\"]"], "Ecommerce view Category");
 		tracker.trackPageView("MultipleCategories");
-		
+
 		var tracker2 = Piwik.getTracker();
 		tracker2.setTrackerUrl("piwik.php");
 		tracker2.setSiteId(1);
@@ -1050,7 +1070,7 @@ if ($sqlite) {
 		tracker3.setCustomData({ "token" : getToken() });
 		tracker3.setCookieNamePrefix("PREFIX");
 		ok( tracker3.getCustomVariable(1) === false, "getCustomVariable(cvarDeleted) from cookie  === false" );
-		
+
 		// Ecommerce Views
 		tracker3.setEcommerceView( "SKU", "NAME HERE", "CATEGORY HERE" );
 		deepEqual( tracker3.getCustomVariable(3, "page"), ["_pks","SKU"], "Ecommerce view SKU");
@@ -1059,15 +1079,15 @@ if ($sqlite) {
 		tracker3.trackPageView("EcommerceView");
 
 		//Ecommerce tests
-		tracker3.addEcommerceItem("SKU PRODUCT", "PRODUCT NAME", "PRODUCT CATEGORY", 11.1111, 2); 
-		tracker3.addEcommerceItem("SKU PRODUCT", "random", "random PRODUCT CATEGORY", 11.1111, 2); 
-		tracker3.addEcommerceItem("SKU ONLY SKU", "", "", "", ""); 
-		tracker3.addEcommerceItem("SKU ONLY NAME", "PRODUCT NAME 2", "", ""); 
-		tracker3.addEcommerceItem("SKU NO PRICE NO QUANTITY", "PRODUCT NAME 3", "CATEGORY", "", "" ); 
-		tracker3.addEcommerceItem("SKU ONLY" ); 
+		tracker3.addEcommerceItem("SKU PRODUCT", "PRODUCT NAME", "PRODUCT CATEGORY", 11.1111, 2);
+		tracker3.addEcommerceItem("SKU PRODUCT", "random", "random PRODUCT CATEGORY", 11.1111, 2);
+		tracker3.addEcommerceItem("SKU ONLY SKU", "", "", "", "");
+		tracker3.addEcommerceItem("SKU ONLY NAME", "PRODUCT NAME 2", "", "");
+		tracker3.addEcommerceItem("SKU NO PRICE NO QUANTITY", "PRODUCT NAME 3", "CATEGORY", "", "" );
+		tracker3.addEcommerceItem("SKU ONLY" );
 		tracker3.trackEcommerceCartUpdate( 555.55 );
 		tracker3.trackEcommerceOrder( "ORDER ID YES", 666.66, 333, 222, 111, 1 );
-		
+
 		// do not track
 		tracker3.setDoNotTrack(false);
 
@@ -1085,13 +1105,41 @@ if ($sqlite) {
 			tracker3.trackPageView("DoNotTrack");
 		}
 
+        // Testing JavaScriptErrorTracking START
+        var oldOnError = window.onerror;
+
+        var customOnErrorInvoked = false;
+        window.onerror = function (message, url, line, column, error) {
+            customOnErrorInvoked = true;
+
+            equal(message, 'Uncaught Error: The message', 'message forwarded to custom onerror handler');
+            equal(url, 'http://piwik.org/path/to/file.js?cb=34343', 'url forwarded to custom onerror handler');
+            equal(line, 44, 'line forwarded to custom onerror handler');
+            equal(column, 12, 'column forwarded to custom onerror handler');
+            ok(error instanceof Error, 'error forwarded to custom onerror handler');
+        };
+
+        tracker.enableJSErrorTracking();
+        window.onerror('Uncaught Error: The message', 'http://piwik.org/path/to/file.js?cb=34343', 44, 12, new Error('The message'));
+        ok(customOnErrorInvoked, "Custom onerror handler was called as expected");
+
+        // delete existing onerror handler and setup tracking again
+        window.onerror = customOnErrorInvoked = false;
+        tracker2.enableJSErrorTracking();
+
+        window.onerror('Second Error: With less data', 'http://piwik.org/path/to/file.js?cb=3kfkf', 45);
+        ok(!customOnErrorInvoked, "Custom onerror handler was ignored as expected");
+
+        window.onerror = oldOnError;
+        // Testing JavaScriptErrorTracking END
+
 
 		stop();
 		setTimeout(function() {
 			xhr.open("GET", "piwik.php?requests=" + getToken(), false);
 			xhr.send(null);
 			results = xhr.responseText;
-			equal( (/<span\>([0-9]+)\<\/span\>/.exec(results))[1], "28", "count tracking events" );
+			equal( (/<span\>([0-9]+)\<\/span\>/.exec(results))[1], "30", "count tracking events" );
 
 			// tracking requests
 			ok( /PiwikTest/.test( results ), "trackPageView(), setDocumentTitle()" );
@@ -1123,10 +1171,10 @@ if ($sqlite) {
 
 			// Test Custom variables
 			ok( /SaveCustomVariableCookie.*&cvar=%7B%222%22%3A%5B%22cookiename2PAGE%22%2C%22cookievalue2PAGE%22%5D%7D.*&_cvar=%7B%221%22%3A%5B%22cookiename%22%2C%22cookievalue%22%5D%2C%222%22%3A%5B%22cookiename2%22%2C%22cookievalue2%22%5D%7D/.test(results), "test custom vars are set");
-			
+
 			// Test campaign parameters set
-			ok( /&_rcn=YEAH&_rck=RIGHT!/.test( results), "Test campaign parameters found"); 
-			ok( /&_ref=http%3A%2F%2Freferrer.example.com%2Fpage%2Fsub%3Fquery%3Dtest%26test2%3Dtest3/.test( results), "Test cookie Ref URL found "); 
+			ok( /&_rcn=YEAH&_rck=RIGHT!/.test( results), "Test campaign parameters found");
+			ok( /&_ref=http%3A%2F%2Freferrer.example.com%2Fpage%2Fsub%3Fquery%3Dtest%26test2%3Dtest3/.test( results), "Test cookie Ref URL found ");
 
 			// Test site search
 			ok( /search=No%20result%20keyword%20%C3%A9%C3%A0&search_cat=Search%20cat&search_count=0&idsite=1/.test(results), "site search, cat, 0 result ");
@@ -1145,19 +1193,19 @@ if ($sqlite) {
 			// ecommerce view multiple categories
 			ok( /(MultipleCategories).*(&cvar=%7B%222%22%3A%5B%22cookiename2PAGE%22%2C%22cookievalue2PAGE%22%5D%2C%225%22%3A%5B%22_pkc%22%2C%22%5B%5C%22CATEGORY1%5C%22%2C%5C%22CATEGORY2%5C%22%5D%22%5D%2C%223%22%3A%5B%22_pks%22%2C%22SKUMultiple%22%5D%2C%224%22%3A%5B%22_pkn%22%2C%22%22%5D%7D)/.test(results)
 			|| /(MultipleCategories).*(&cvar=%7B%222%22%3A%5B%22cookiename2PAGE%22%2C%22cookievalue2PAGE%22%5D%2C%223%22%3A%5B%22_pks%22%2C%22SKUMultiple%22%5D%2C%224%22%3A%5B%22_pkn%22%2C%22%22%5D%2C%225%22%3A%5B%22_pkc%22%2C%22%5B%5C%22CATEGORY1%5C%22%2C%5C%22CATEGORY2%5C%22%5D%22%5D%7D)/.test(results), "ecommerce view multiple categories");
-			
+
 			// Ecommerce order
 			ok( /idgoal=0&ec_id=ORDER%20ID%20YES&revenue=666.66&ec_st=333&ec_tx=222&ec_sh=111&ec_dt=1&ec_items=%5B%5B%22SKU%20PRODUCT%22%2C%22random%22%2C%22random%20PRODUCT%20CATEGORY%22%2C11.1111%2C2%5D%2C%5B%22SKU%20ONLY%20SKU%22%2C%22%22%2C%22%22%2C0%2C1%5D%2C%5B%22SKU%20ONLY%20NAME%22%2C%22PRODUCT%20NAME%202%22%2C%22%22%2C0%2C1%5D%2C%5B%22SKU%20NO%20PRICE%20NO%20QUANTITY%22%2C%22PRODUCT%20NAME%203%22%2C%22CATEGORY%22%2C0%2C1%5D%2C%5B%22SKU%20ONLY%22%2C%22%22%2C%22%22%2C0%2C1%5D%5D/.test( results ), "logEcommerceOrder() with items" );
 
 			// Not set for the first ecommerce order
 			ok( ! /idgoal=0&ec_id=ORDER%20ID.*_ects=1/.test(results), "Ecommerce last timestamp set");
-			
+
 			// Ecommerce last timestamp set properly for subsequent page view
 			ok( /DoTrack.*_ects=1/.test(results), "Ecommerce last timestamp set");
 
 			// Cart update
 			ok( /idgoal=0&revenue=555.55&ec_items=%5B%5B%22SKU%20PRODUCT%22%2C%22random%22%2C%22random%20PRODUCT%20CATEGORY%22%2C11.1111%2C2%5D%2C%5B%22SKU%20ONLY%20SKU%22%2C%22%22%2C%22%22%2C0%2C1%5D%2C%5B%22SKU%20ONLY%20NAME%22%2C%22PRODUCT%20NAME%202%22%2C%22%22%2C0%2C1%5D%2C%5B%22SKU%20NO%20PRICE%20NO%20QUANTITY%22%2C%22PRODUCT%20NAME%203%22%2C%22CATEGORY%22%2C0%2C1%5D%2C%5B%22SKU%20ONLY%22%2C%22%22%2C%22%22%2C0%2C1%5D%5D/.test( results ), "logEcommerceCartUpdate() with items" );
-			
+
 			// parameters inserted by plugin hooks
 			ok( /testlog/.test( results ), "plugin hook log" );
 			ok( /testlink/.test( results ), "plugin hook link" );
@@ -1166,10 +1214,14 @@ if ($sqlite) {
 			// Testing the Tracking URL append
 			ok( /&appended=1&appended2=value/.test( results ), "appendToTrackingUrl(query) function");
 
+            // Testing the JavaScript Error Tracking
+			ok( /e_c=JavaScript%20Errors&e_a=http%3A%2F%2Fpiwik.org%2Fpath%2Fto%2Ffile.js%3Fcb%3D34343%3A44%3A12&e_n=Uncaught%20Error%3A%20The%20message&idsite=1/.test( results ), "enableJSErrorTracking() function with predefined onerror event");
+			ok( /e_c=JavaScript%20Errors&e_a=http%3A%2F%2Fpiwik.org%2Fpath%2Fto%2Ffile.js%3Fcb%3D3kfkf%3A45&e_n=Second%20Error%3A%20With%20less%20data&idsite=1/.test( results ), "enableJSErrorTracking() function without predefined onerror event and less parameters");
+
 			start();
 		}, 5000);
 	});
-	';
+	<?php
 }
 ?>
 }

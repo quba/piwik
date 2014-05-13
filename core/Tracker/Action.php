@@ -5,8 +5,6 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik
- * @package Piwik
  */
 
 namespace Piwik\Tracker;
@@ -19,8 +17,6 @@ use Piwik\Tracker;
 /**
  * An action
  *
- * @package Piwik
- * @subpackage Tracker
  */
 abstract class Action
 {
@@ -194,9 +190,6 @@ abstract class Action
 
     public function writeDebugInfo()
     {
-        if (!isset($GLOBALS['PIWIK_TRACKER_DEBUG']) || !$GLOBALS['PIWIK_TRACKER_DEBUG']) {
-            return false;
-        }
         $type = self::getTypeAsString($this->getActionType());
         Common::printDebug("Action is a $type,
                 Action name =  " . $this->getActionName() . ",
@@ -262,7 +255,7 @@ abstract class Action
                                                                Tracker\Action::TYPE_SITE_SEARCH
                                                          ))
             ? (int)$this->getIdActionName()
-            : null;
+            : 0;
 
         $visitAction = array(
             'idvisit'               => $idVisit,

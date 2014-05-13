@@ -5,8 +5,6 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik
- * @package Piwik
  */
 namespace Piwik\Plugin;
 
@@ -14,6 +12,7 @@ use Piwik\Option;
 use Piwik\Piwik;
 use Piwik\Settings\Setting;
 use Piwik\Settings\StorageInterface;
+use Piwik\SettingsServer;
 
 /**
  * Base class of all plugin settings providers. Plugins that define their own configuration settings
@@ -24,7 +23,6 @@ use Piwik\Settings\StorageInterface;
  * 
  * For an example, see the {@link Piwik\Plugins\ExampleSettingsPlugin\ExampleSettingsPlugin} plugin.
  * 
- * @package Piwik\Plugin
  * @api
  */
 abstract class Settings implements StorageInterface
@@ -158,7 +156,7 @@ abstract class Settings implements StorageInterface
      */
     public function removeAllPluginSettings()
     {
-        Piwik::checkUserIsSuperUser();
+        Piwik::checkUserHasSuperUserAccess();
 
         Option::delete($this->getOptionKey());
         $this->settingsValues = array();
@@ -328,6 +326,11 @@ abstract class Settings implements StorageInterface
      */
     private function checkHasEnoughPermission(Setting $setting)
     {
+        // When the request is a Tracker request, allow plugins to read/write settings
+        if(SettingsServer::isTrackerApiRequest()) {
+            return;
+        }
+
         if (!$setting->canBeDisplayedForCurrentUser()) {
             $errorMsg = Piwik::translate('CoreAdminHome_PluginSettingChangeNotAllowed', array($setting->getName(), $this->pluginName));
             throw new \Exception($errorMsg);

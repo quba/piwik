@@ -14,7 +14,7 @@ use Piwik\Date;
  *
  * This Simple fixture adds one website and tracks one visit with couple pageviews and an ecommerce conversion
  */
-class SimpleFixtureTrackFewVisits extends \Test_Piwik_BaseFixture
+class SimpleFixtureTrackFewVisits extends \Fixture
 {
     public $dateTime = '2013-01-23 01:23:45';
     public $idSite = 1;
@@ -33,8 +33,10 @@ class SimpleFixtureTrackFewVisits extends \Test_Piwik_BaseFixture
 
     private function setUpWebsite()
     {
-        $idSite = self::createWebsite($this->dateTime, $ecommerce = 1);
-        $this->assertTrue($idSite === $this->idSite);
+        if (!self::siteCreated($this->idSite)) {
+            $idSite = self::createWebsite($this->dateTime, $ecommerce = 1);
+            $this->assertSame($this->idSite, $idSite);
+        }
     }
 
     protected function trackFirstVisit()

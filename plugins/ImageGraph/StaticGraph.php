@@ -5,14 +5,11 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik_Plugins
- * @package ImageGraph
  */
 
 namespace Piwik\Plugins\ImageGraph;
 
 use Exception;
-
 use pData;
 use pImage;
 use Piwik\Loader;
@@ -26,8 +23,6 @@ require_once PIWIK_INCLUDE_PATH . "/libs/pChart2.1.3/class/pData.class.php";
 /**
  * The StaticGraph abstract class is used as a base class for different types of static graphs.
  *
- * @package ImageGraph
- * @subpackage StaticGraph
  */
 abstract class StaticGraph
 {

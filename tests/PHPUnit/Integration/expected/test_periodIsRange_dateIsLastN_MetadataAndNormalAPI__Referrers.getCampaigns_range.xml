@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <result>
 	<row>
-		<label>CAMPAIGN NAME - YEAH!</label>
+		<label>campaign name - yeah!</label>
 		<goals>
 			<row idgoal='1'>
 				<nb_conversions>1</nb_conversions>
@@ -11,9 +11,10 @@
 		</goals>
 		<nb_conversions>1</nb_conversions>
 		<revenue>1000</revenue>
+		<nb_visits>0</nb_visits>
 		<subtable>
 			<row>
-				<label>CAMPAIGN KEYWORD - RIGHT...</label>
+				<label>campaign keyword - right...</label>
 				<goals>
 					<row idgoal='1'>
 						<nb_conversions>1</nb_conversions>
@@ -23,6 +24,7 @@
 				</goals>
 				<nb_conversions>1</nb_conversions>
 				<revenue>1000</revenue>
+				<nb_visits>0</nb_visits>
 			</row>
 		</subtable>
 	</row>

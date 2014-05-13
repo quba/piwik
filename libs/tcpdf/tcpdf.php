@@ -6973,7 +6973,7 @@ class TCPDF {
 			if (($info === false) AND function_exists($gdfunction)) {
 				try {
 					// GD library
-					$img = $gdfunction($file);
+					$img = @$gdfunction($file);
 					if ($img !== false) {
 						if ($resize) {
 							$imgr = imagecreatetruecolor($neww, $newh);
@@ -7109,7 +7109,7 @@ class TCPDF {
 		$xkimg = $ximg * $this->k;
 		if (!$alt) {
 			// only non-alternative immages will be set
-			$this->_out(sprintf('q %F 0 0 %F %F %F cm /I%u Do Q', ($w * $this->k), ($h * $this->k), $xkimg, (($this->h - ($y + $h)) * $this->k), $info['i']));
+			$this->_out(sprintf('q %F 0 0 %F %F %F cm /I%u Do Q', ($w * $this->k), ($h * $this->k), $xkimg, (($this->h - ($y + $h)) * $this->k), @$info['i']));
 		}
 		if (!empty($border)) {
 			$bx = $this->x;

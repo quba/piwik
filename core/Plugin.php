@@ -5,11 +5,10 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik
- * @package Piwik
  */
 namespace Piwik;
 
+use Piwik\Plugin\Dependency;
 use Piwik\Plugin\MetadataLoader;
 
 /**
@@ -40,8 +39,7 @@ require_once PIWIK_INCLUDE_PATH . '/core/Plugin/MetadataLoader.php';
  * - **description**: An internationalized string description of what the plugin
  *                    does.
  * - **homepage**: The URL to the plugin's website.
- * - **author**: Author name.
- * - **author_homepage**: The URL to the author's website.
+ * - **authors**: A list of author arrays with keys for 'name', 'email' and 'homepage'
  * - **license**: The license the code uses (eg, GPL, MIT, etc.).
  * - **license_homepage**: URL to website describing the license used.
  * - **version**: The plugin version (eg, 1.0.1).
@@ -89,7 +87,6 @@ require_once PIWIK_INCLUDE_PATH . '/core/Plugin/MetadataLoader.php';
  *         }
  *     }
  * 
- * @package Piwik
  * @api
  */
 class Plugin
@@ -277,6 +274,34 @@ class Plugin
     final public function getPluginName()
     {
         return $this->pluginName;
+    }
+
+    /**
+     * Detect whether there are any missing dependencies.
+     *
+     * @param null $piwikVersion Defaults to the current Piwik version
+     * @return bool
+     */
+    public function hasMissingDependencies($piwikVersion = null)
+    {
+        $requirements = $this->getMissingDependencies($piwikVersion);
+
+        return !empty($requirements);
+    }
+
+    public function getMissingDependencies($piwikVersion = null)
+    {
+        if (empty($this->pluginInformation['require'])) {
+            return array();
+        }
+
+        $dependency = new Dependency();
+
+        if (!is_null($piwikVersion)) {
+            $dependency->setPiwikVersion($piwikVersion);
+        }
+
+        return $dependency->getMissingDependencies($this->pluginInformation['require']);
     }
 
     /**

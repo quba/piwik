@@ -5,8 +5,6 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik
- * @package Piwik
  */
 namespace Piwik\AssetManager\UIAssetFetcher;
 
@@ -54,7 +52,11 @@ class JScriptUIAssetFetcher extends UIAssetFetcher
 
     protected function addThemeFiles()
     {
-        if(in_array($this->getTheme()->getThemeName(), $this->plugins)) {
+        $theme = $this->getTheme();
+        if(!$theme) {
+            return;
+        }
+        if(in_array($theme->getThemeName(), $this->plugins)) {
 
             $jsInThemes = $this->getTheme()->getJavaScriptFiles();
 
@@ -75,9 +77,12 @@ class JScriptUIAssetFetcher extends UIAssetFetcher
             'libs/jquery/jquery-ui.js',
             'libs/jquery/jquery.browser.js',
             'libs/',
+            'plugins/CoreHome/javascripts/require.js',
             'plugins/Zeitgeist/javascripts/piwikHelper.js',
             'plugins/Zeitgeist/javascripts/',
+            'plugins/CoreHome/javascripts/uiControl.js',
             'plugins/CoreHome/javascripts/broadcast.js',
+            'plugins/CoreHome/javascripts/', // load CoreHome JS before other plugins
             'plugins/',
             'tests/',
         );

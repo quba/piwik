@@ -5,8 +5,6 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik_Plugins
- * @package VisitsSummary
  */
 namespace Piwik\Plugins\VisitsSummary;
 
@@ -20,12 +18,11 @@ use Piwik\WidgetsList;
  * Day class directly.
  * These metrics can be used by other Plugins so they need to be processed up front.
  *
- * @package VisitsSummary
  */
 class VisitsSummary extends \Piwik\Plugin
 {
     /**
-     * @see Piwik_Plugin::getListHooksRegistered
+     * @see Piwik\Plugin::getListHooksRegistered
      */
     public function getListHooksRegistered()
     {
@@ -33,6 +30,7 @@ class VisitsSummary extends \Piwik\Plugin
             'API.getReportMetadata'   => 'getReportMetadata',
             'WidgetsList.addWidgets'  => 'addWidgets',
             'Menu.Reporting.addItems' => 'addMenu',
+            'AssetManager.getStylesheetFiles' => 'getStylesheetFiles',
         );
     }
 
@@ -58,6 +56,11 @@ class VisitsSummary extends \Piwik\Plugin
             'processedMetrics' => false,
             'order'            => 1
         );
+    }
+
+    public function getStylesheetFiles(&$stylesheets)
+    {
+        $stylesheets[] = "plugins/VisitsSummary/stylesheets/datatable.less";
     }
 
     function addWidgets()

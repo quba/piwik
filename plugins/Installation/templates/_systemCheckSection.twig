@@ -45,7 +45,7 @@
                     {{ 'Installation_RestartWebServer'|translate }}
                     <br/>
                     <br/>
-                    {{ 'Installation_SystemCheckPhpPdoAndMysqliSite'|translate }}
+                    {{ 'Installation_SystemCheckPhpPdoAndMysqli'|translate("<a style=\"color:red\" href=\"http:\/\/php.net\/pdo\">","<\/a>","<a style=\"color:red\" href=\"http:\/\/php.net\/mysqli\">","<\/a>")|raw|nl2br }}
                 </p>
             </td>
         </tr>
@@ -210,32 +210,14 @@
         </td>
     </tr>
     <tr>
-        <td class="label">{{ 'Installation_SystemCheckGD'|translate }}</td>
+        <td class="label">{{ 'Installation_SystemCheckGDFreeType'|translate }}</td>
         <td>
             {% if infos.gd_ok %}
                 {{ ok }}
             {% else %}
-                {{ warning }} <span class="warn">{{ 'Installation_SystemCheckGD'|translate }}
+                {{ warning }} <span class="warn">{{ 'Installation_SystemCheckGDFreeType'|translate }}
                 <br/>
                 {{ 'Installation_SystemCheckGDHelp'|translate }} </span>
-            {% endif %}
-        </td>
-    </tr>
-    <tr>
-        <td class="label">{{ 'Installation_SystemCheckMbstring'|translate }}</td>
-        <td>
-            {% if infos.hasMbstring %}
-                {% if infos.multibyte_ok %}
-                    {{ ok }}
-                {% else %}
-                    {{ warning }}
-                    <span class="warn">{{ 'Installation_SystemCheckMbstring'|translate }}
-                        <br/> {{ 'Installation_SystemCheckMbstringFuncOverloadHelp'|translate }}</span>
-                {% endif %}
-            {% else %}
-                {{ warning }}
-                <span class="warn">{{ 'Installation_SystemCheckMbstringExtensionHelp'|translate }}
-                    &nbsp;{{ 'Installation_SystemCheckMbstringExtensionGeoIpHelp'|translate }}</span>
             {% endif %}
         </td>
     </tr>
@@ -285,17 +267,26 @@
             {% endif %}
         </td>
     </tr>
-    {% if infos.general_infos.assume_secure_protocol is defined %}
-        <tr>
-            <td class="label">{{ 'Installation_SystemCheckSecureProtocol'|translate }}</td>
-            <td>
-                {{ warning }} <span class="warn">{{ infos.protocol }} </span><br/>
-                {{ 'Installation_SystemCheckSecureProtocolHelp'|translate }}
-                <br/><br/>
-                <code>[General]<br/>
-                    assume_secure_protocol = 1</code><br/>
-            </td>
-        </tr>
+    {% if duringInstall is empty %}
+    <tr>
+        <td class="label">{{ 'UserCountry_Geolocation'|translate }}</td>
+        <td>
+            {% if infos.extra.geolocation_ok %}
+                {{ ok }} {{ 'General_Ok'|translate }}
+                <br/>
+            {% elseif infos.extra.geolocation_using_non_recommended %}
+                {{ warning }}
+                <span class="warn">{{ 'UserCountry_GeoIpLocationProviderNotRecomnended'|translate }}
+                    {{ 'UserCountry_GeoIpLocationProviderDesc_ServerBased2'|translate('<a href="http://piwik.org/docs/geo-locate/" target="_blank">', '', '', '</a>')|raw }}</span>
+                <br/>
+            {% else %}
+                {{ warning }}
+                <span class="warn">{{ 'UserCountry_DefaultLocationProviderDesc1'|translate }}
+                    {{ 'UserCountry_DefaultLocationProviderDesc2'|translate('<a href="http://piwik.org/docs/geo-locate/" target="_blank">', '', '', '</a>')|raw }} </span>
+                </span>
+            {% endif %}
+        </td>
+    </tr>
     {% endif %}
     {% if infos.extra.load_data_infile_available is defined %}
         <tr>

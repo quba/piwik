@@ -7,9 +7,9 @@
  */
 
 use Piwik\Plugins\UserCountry\GeoIPAutoUpdater;
+use Piwik\Plugins\UserCountry\LocationProvider\GeoIp;
 use Piwik\Plugins\UserCountry;
 use Piwik\Plugins\UserCountry\LocationProvider;
-use Piwik\Plugins\UserCountry\LocationProvider\GeoIp;
 
 require_once PIWIK_INCLUDE_PATH . '/plugins/UserCountry/UserCountry.php';
 require_once PIWIK_INCLUDE_PATH . '/plugins/UserCountry/functions.php';
@@ -165,6 +165,11 @@ class Test_Piwik_UserCountry extends PHPUnit_Framework_Testcase
 
 class Piwik_UserCountry_GeoIPAutoUpdater_publictest extends GeoIPAutoUpdater
 {
+    public function __construct()
+    {
+        // empty
+    }
+    
     public function performRedundantDbChecks()
     {
         parent::performRedundantDbChecks();

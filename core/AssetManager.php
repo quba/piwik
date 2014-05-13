@@ -5,8 +5,6 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik
- * @package Piwik
  */
 namespace Piwik;
 
@@ -21,9 +19,9 @@ use Piwik\AssetManager\UIAssetFetcher\StylesheetUIAssetFetcher;
 use Piwik\AssetManager\UIAssetFetcher;
 use Piwik\AssetManager\UIAssetMerger\JScriptUIAssetMerger;
 use Piwik\AssetManager\UIAssetMerger\StylesheetUIAssetMerger;
+use Piwik\Config as PiwikConfig;
 use Piwik\Plugin\Manager;
 use Piwik\Translate;
-use Piwik\Config as PiwikConfig;
 
 /**
  * AssetManager is the class used to manage the inclusion of UI assets:
@@ -36,13 +34,10 @@ use Piwik\Config as PiwikConfig;
  *  - Manages server-side cache
  *
  * Whether assets are included individually or as merged files is defined by
- * the global option 'disable_merged_assets'. When set to 1, files will be
- * included individually.
- * When set to 0, files will be included within a pair of files: 1 JavaScript
- * and 1 css file.
+ * the global option 'disable_merged_assets'. See the documentation in the global
+ * config for more information.
  *
  * @method static \Piwik\AssetManager getInstance()
- * @package Piwik
  */
 class AssetManager extends Singleton
 {
@@ -76,8 +71,10 @@ class AssetManager extends Singleton
         $this->cacheBuster = UIAssetCacheBuster::getInstance();
         $this->minimalStylesheetFetcher =  new StaticUIAssetFetcher(array('plugins/Zeitgeist/stylesheets/base.less'), array(), $this->theme);
 
-        if(Manager::getInstance()->getThemeEnabled() != null)
+        $theme = Manager::getInstance()->getThemeEnabled();
+        if(!empty($theme)) {
             $this->theme = new Theme();
+        }
     }
 
     /**
@@ -204,8 +201,9 @@ class AssetManager extends Singleton
     {
         $loadedPlugins = array();
 
-        foreach(Manager::getInstance()->getLoadedPluginsName() as $pluginName) {
+        foreach(Manager::getInstance()->getPluginsLoadedAndActivated() as $plugin) {
 
+            $pluginName = $plugin->getPluginName();
             $pluginIsCore = Manager::getInstance()->isPluginBundledWithCore($pluginName);
 
             if(($pluginIsCore && $core) || (!$pluginIsCore && !$core))

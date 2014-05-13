@@ -5,8 +5,6 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik
- * @package Piwik
  */
 namespace Piwik\API;
 
@@ -15,10 +13,6 @@ use Piwik\Common;
 use Piwik\Piwik;
 use Piwik\Url;
 
-/**
- * @package Piwik
- * @subpackage Piwik_API
- */
 class DocumentationGenerator
 {
     protected $modulesToHide = array('CoreAdminHome', 'DBStats');
@@ -140,6 +134,8 @@ class DocumentationGenerator
             'abandonedCarts' => '0',
             'segmentName'    => 'pageTitle',
             'ip'             => '194.57.91.215',
+            'idSites'             => '1,2',
+            'idAlert'             => '1',
 //            'segmentName'    => 'browserCode',
         );
 
@@ -189,6 +185,7 @@ class DocumentationGenerator
         $aParameters['include_aggregate_rows'] = false;
         $aParameters['filter_limit'] = false; //@review without adding this, I can not set filter_limit in $otherRequestParameters integration tests
         $aParameters['filter_sort_column'] = false; //@review without adding this, I can not set filter_sort_column in $otherRequestParameters integration tests
+        $aParameters['filter_sort_order'] = false; //@review without adding this, I can not set filter_sort_order in $otherRequestParameters integration tests
         $aParameters['filter_truncate'] = false;
         $aParameters['hideColumns'] = false;
         $aParameters['showColumns'] = false;

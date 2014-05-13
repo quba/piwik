@@ -12,9 +12,39 @@
     top:10px;
 }
 
+#content, .ui-dialog {
+  .evolution-annotations  {
+    margin-top: -5px;
+    margin-bottom: -5px;
+  }
+  .evolution-annotations > span {
+    top: -1px;
+    position: absolute;
+  }
+  .annotation-manager {
+    margin-top: 15px;
+  }
+}
+
+.ui-dialog .evolution-annotations > span {
+  top: 25px;
+}
+
+body > .widget .evolution-annotations > span {
+  top: -25px;
+}
+
 .annotation-manager {
     text-align: left;
     margin-top: -18px;
+
+  .new-annotation-row {
+    height: 145px;
+  }
+
+  .annotation.edit .annotation-edit-mode {
+    min-height: 125px;
+  }
 }
 
 .annotations-header {
@@ -76,10 +106,6 @@
     text-align: right;
     vertical-align: top;
     font-size: 14px;
-}
-
-.annotations table td.annotation-meta {
-  padding-bottom: 150px;
 }
 
 .annotation-user {

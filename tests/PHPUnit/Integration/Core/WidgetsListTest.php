@@ -27,11 +27,9 @@ class Core_WidgetsListTest extends DatabaseTestCase
         FakeAccess::$superUser = true;
         Access::setSingletonInstance($pseudoMockAccess);
 
-        Test_Piwik_BaseFixture::createWebsite('2009-01-04 00:11:42');
+        Fixture::createWebsite('2009-01-04 00:11:42');
 
         $_GET['idSite'] = 1;
-
-        IntegrationTestCase::loadAllPlugins();
 
         WidgetsList::_reset();
         $widgets = WidgetsList::get();
@@ -45,12 +43,14 @@ class Core_WidgetsListTest extends DatabaseTestCase
             'General_Visitors'             => 12,
             'UserSettings_VisitorSettings' => 11,
             'General_Actions'              => 8,
+            'Events_Events'                => 3,
             'Actions_SubmenuSitesearch'    => 5,
             'Referrers_Referrers'            => 7,
             'Goals_Goals'                  => 1,
             'SEO'                          => 2,
             'Example Widgets'              => 4,
-            'DevicesDetection_DevicesDetection' => 7
+            'DevicesDetection_DevicesDetection' => 7,
+            'Insights_WidgetCategory' => 2
         );
 
         // number of main categories
@@ -59,7 +59,6 @@ class Core_WidgetsListTest extends DatabaseTestCase
         foreach ($numberOfWidgets AS $category => $widgetCount) {
             $this->assertEquals($widgetCount, count($widgets[$category]), sprintf("Widget: %s", $category));
         }
-        IntegrationTestCase::unloadAllPlugins();
     }
 
     /**
@@ -72,19 +71,17 @@ class Core_WidgetsListTest extends DatabaseTestCase
         FakeAccess::$superUser = true;
         Access::setSingletonInstance($pseudoMockAccess);
 
-        Test_Piwik_BaseFixture::createWebsite('2009-01-04 00:11:42');
+        Fixture::createWebsite('2009-01-04 00:11:42');
         API::getInstance()->addGoal(1, 'Goal 1 - Thank you', 'title', 'Thank you', 'contains', $caseSensitive = false, $revenue = 10, $allowMultipleConversions = 1);
 
         $_GET['idSite'] = 1;
-
-        IntegrationTestCase::loadAllPlugins();
 
         WidgetsList::_reset();
         $widgets = WidgetsList::get();
         WidgetsList::_reset();
 
         // number of main categories
-        $this->assertEquals(11, count($widgets));
+        $this->assertEquals(13, count($widgets));
 
         // check that the goal widget was added
         $numberOfWidgets = array(
@@ -107,19 +104,17 @@ class Core_WidgetsListTest extends DatabaseTestCase
         FakeAccess::$superUser = true;
         Access::setSingletonInstance($pseudoMockAccess);
 
-        Test_Piwik_BaseFixture::createWebsite('2009-01-04 00:11:42', true);
+        Fixture::createWebsite('2009-01-04 00:11:42', true);
         API::getInstance()->addGoal(1, 'Goal 1 - Thank you', 'title', 'Thank you', 'contains', $caseSensitive = false, $revenue = 10, $allowMultipleConversions = 1);
 
         $_GET['idSite'] = 1;
-
-        IntegrationTestCase::loadAllPlugins();
 
         WidgetsList::_reset();
         $widgets = WidgetsList::get();
         WidgetsList::_reset();
 
         // number of main categories
-        $this->assertEquals(12, count($widgets));
+        $this->assertEquals(14, count($widgets));
 
         // check if each category has the right number of widgets
         $numberOfWidgets = array(
@@ -142,21 +137,19 @@ class Core_WidgetsListTest extends DatabaseTestCase
         FakeAccess::$superUser = true;
         Access::setSingletonInstance($pseudoMockAccess);
 
-        Test_Piwik_BaseFixture::createWebsite('2009-01-04 00:11:42', true);
+        Fixture::createWebsite('2009-01-04 00:11:42', true);
         API::getInstance()->addGoal(1, 'Goal 1 - Thank you', 'title', 'Thank you', 'contains', $caseSensitive = false, $revenue = 10, $allowMultipleConversions = 1);
 
         $_GET['idSite'] = 1;
 
-        IntegrationTestCase::loadAllPlugins();
-
         WidgetsList::_reset();
         $widgets = WidgetsList::get();
 
-        $this->assertCount(12, $widgets);
+        $this->assertCount(14, $widgets);
         WidgetsList::remove('SEO', 'NoTeXiStInG');
 
         $widgets = WidgetsList::get();
-        $this->assertCount(12, $widgets);
+        $this->assertCount(14, $widgets);
 
         $this->assertArrayHasKey('SEO', $widgets);
         $this->assertCount(2, $widgets['SEO']);
@@ -187,7 +180,7 @@ class Core_WidgetsListTest extends DatabaseTestCase
 
         \Piwik\Translate::loadEnglishTranslation();
 
-        Test_Piwik_BaseFixture::createWebsite('2009-01-04 00:11:42', true);
+        Fixture::createWebsite('2009-01-04 00:11:42', true);
 
         $_GET['idSite'] = 1;
 

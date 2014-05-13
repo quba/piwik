@@ -19,6 +19,11 @@ use Piwik\Translate;
  */
 class Core_PiwikTest extends DatabaseTestCase
 {
+    public function setUp()
+    {
+        parent::setUp();
+    }
+
     /**
      * Tests the generated JS code
      * @group Core
@@ -47,19 +52,18 @@ class Core_PiwikTest extends DatabaseTestCase
   _paq.push(['trackPageView']);
   _paq.push(['enableLinkTracking']);
   (function() {
-    var u=((&quot;https:&quot; == document.location.protocol) ? &quot;https&quot; : &quot;http&quot;) + &quot;://localhost/piwik&quot;;
+    var u=((&quot;https:&quot; == document.location.protocol) ? &quot;https&quot; : &quot;http&quot;) + &quot;://localhost/piwik/&quot;;
     _paq.push(['setTrackerUrl', u+'piwik.php']);
     _paq.push(['setSiteId', 1]);
     var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0]; g.type='text/javascript';
     g.defer=true; g.async=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
   })();
-
 &lt;/script&gt;
-&lt;noscript&gt;&lt;p&gt;&lt;img src=&quot;http://localhost/piwikpiwik.php?idsite=1&quot; style=&quot;border:0;&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;&lt;/noscript&gt;
+&lt;noscript&gt;&lt;p&gt;&lt;img src=&quot;http://localhost/piwik/piwik.php?idsite=1&quot; style=&quot;border:0;&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;&lt;/noscript&gt;
 &lt;!-- End Piwik Code --&gt;
 ";
 
-        $this->assertEquals($jsTag, $expected);
+        $this->assertEquals($expected, $jsTag);
     }
 
     /**
@@ -81,8 +85,6 @@ class Core_PiwikTest extends DatabaseTestCase
     }
 
     /**
-     * @group Core
-     *
      * @dataProvider getValidNumeric
      */
     public function testIsNumericValid($toTest)
@@ -105,8 +107,6 @@ class Core_PiwikTest extends DatabaseTestCase
     }
 
     /**
-     * @group Core
-     *
      * @dataProvider getInvalidNumeric
      */
     public function testIsNumericNotValid($toTest)
@@ -114,9 +114,6 @@ class Core_PiwikTest extends DatabaseTestCase
         $this->assertFalse(is_numeric($toTest), $toTest . " valid but shouldn't!");
     }
 
-    /**
-     * @group Core
-     */
     public function testSecureDiv()
     {
         $this->assertSame(3, Piwik::secureDiv(9, 3));
@@ -125,7 +122,6 @@ class Core_PiwikTest extends DatabaseTestCase
         $this->assertSame(10.0, Piwik::secureDiv(10.0, 1.0));
         $this->assertSame(5.5, Piwik::secureDiv(11.0, 2));
         $this->assertSame(0, Piwik::secureDiv(11.0, 'a'));
-
     }
 
     /**
@@ -149,13 +145,13 @@ class Core_PiwikTest extends DatabaseTestCase
             array(1.002, array('1s', '00:00:01')),
             array(1.02, array('1.02s', '00:00:01.02')),
             array(1.2, array('1.2s', '00:00:01.20')),
-            array(122.1, array('2 min 2.1s', '00:02:02.10'))
+            array(122.1, array('2 min 2.1s', '00:02:02.10')),
+            array(-122.1, array('-2 min 2.1s', '-00:02:02.10')),
+            array(86400 * -365, array('-365 days 0 hours', '-8760:00:00'))
         );
     }
 
     /**
-     * @group Core
-     *
      * @dataProvider getPrettyTimeFromSecondsData
      */
     public function testGetPrettyTimeFromSeconds($seconds, $expected)
@@ -200,18 +196,12 @@ class Core_PiwikTest extends DatabaseTestCase
     }
 
     /**
-     * @group Core
-     *
      * @dataProvider getInvalidLoginStringData
+     * @expectedException \Exception
      */
     public function testCheckInvalidLoginString($toTest)
     {
-        try {
-            Piwik::checkValidLoginString($toTest);
-        } catch (Exception $e) {
-            return;
-        }
-        $this->fail('Expected exception not raised');
+        Piwik::checkValidLoginString($toTest);
     }
 
     /**
@@ -231,8 +221,6 @@ class Core_PiwikTest extends DatabaseTestCase
     }
 
     /**
-     * @group Core
-     *
      * @dataProvider getValidLoginStringData
      */
     public function testCheckValidLoginString($toTest)
@@ -256,8 +244,6 @@ class Core_PiwikTest extends DatabaseTestCase
     }
 
     /**
-     * @group Core
-     *
      * @dataProvider getGetPrettyValueTestCases
      */
     public function testGetPrettyValue($columnName, $value, $expected)
@@ -265,7 +251,7 @@ class Core_PiwikTest extends DatabaseTestCase
         Translate::loadEnglishTranslation();
 
         $access = Access::getInstance();
-        $access->setSuperUser(true);
+        $access->setSuperUserAccess(true);
 
         $idsite = API::getInstance()->addSite("test", "http://test");
 
@@ -293,8 +279,6 @@ class Core_PiwikTest extends DatabaseTestCase
     }
 
     /**
-     * @group Core
-     *
      * @dataProvider getIsAssociativeArrayTestCases
      */
     public function testIsAssociativeArray($array, $expected)
@@ -302,9 +286,6 @@ class Core_PiwikTest extends DatabaseTestCase
         $this->assertEquals($expected, Piwik::isAssociativeArray($array));
     }
 
-    /**
-     * @group Core
-     */
     public function testCheckIfFileSystemIsNFSOnNonNFS()
     {
         $this->assertFalse(Filesystem::checkIfFileSystemIsNFS());

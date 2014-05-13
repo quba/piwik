@@ -5,8 +5,6 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik_Plugins
- * @package UserCountry
  */
 namespace Piwik\Plugins\UserCountry;
 
@@ -16,17 +14,15 @@ use Piwik\DataTable\Renderer\Json;
 use Piwik\Http;
 use Piwik\IP;
 use Piwik\Piwik;
+use Piwik\Plugins\UserCountry\LocationProvider\GeoIp\ServerBased;
+use Piwik\Plugins\UserCountry\LocationProvider\GeoIp;
+use Piwik\Plugins\UserCountry\LocationProvider;
 use Piwik\Plugins\UserCountry\LocationProvider\DefaultProvider;
 use Piwik\Plugins\UserCountry\LocationProvider\GeoIp\Pecl;
-use Piwik\Plugins\UserCountry\LocationProvider;
-use Piwik\Plugins\UserCountry\LocationProvider\GeoIp;
-use Piwik\Plugins\UserCountry\LocationProvider\GeoIp\ServerBased;
 use Piwik\View;
-use Piwik\ViewDataTable\Factory;
 
 /**
  *
- * @package UserCountry
  */
 class Controller extends \Piwik\Plugin\ControllerAdmin
 {
@@ -47,11 +43,11 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
 
     public function adminIndex()
     {
-        Piwik::checkUserIsSuperUser();
+        $this->dieIfGeolocationAdminIsDisabled();
+        Piwik::checkUserHasSuperUserAccess();
         $view = new View('@UserCountry/adminIndex');
 
-        $allProviderInfo = LocationProvider::getAllProviderInfo(
-            $newline = '<br/>', $includeExtra = true);
+        $allProviderInfo = LocationProvider::getAllProviderInfo($newline = '<br/>', $includeExtra = true);
         $view->locationProviders = $allProviderInfo;
         $view->currentProviderId = LocationProvider::getCurrentProviderId();
         $view->thisIP = IP::getIpFromHeader();
@@ -108,7 +104,8 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
      */
     public function downloadFreeGeoIPDB()
     {
-        Piwik::checkUserIsSuperUser();
+        $this->dieIfGeolocationAdminIsDisabled();
+        Piwik::checkUserHasSuperUserAccess();
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $this->checkTokenInUrl();
             Json::sendHeaderJSON();
@@ -174,6 +171,8 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
         if ($lastRunTime !== false) {
             $view->lastTimeUpdaterRun = '<strong><em>' . $lastRunTime->toString() . '</em></strong>';
         }
+
+        $view->nextRunTime = GeoIPAutoUpdater::getNextRunTime();
     }
 
     /**
@@ -191,7 +190,8 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
      */
     public function updateGeoIPLinks()
     {
-        Piwik::checkUserIsSuperUser();
+        $this->dieIfGeolocationAdminIsDisabled();
+        Piwik::checkUserHasSuperUserAccess();
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
             Json::sendHeaderJSON();
             try {
@@ -205,7 +205,10 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
                 if ($info !== false) {
                     return Common::json_encode($info);
                 } else {
-                    return 1;
+                    $view = new View("@UserCountry/_updaterNextRunTime");
+                    $view->nextRunTime = GeoIPAutoUpdater::getNextRunTime();
+                    $nextRunTimeHtml = $view->render();
+                    return Common::json_encode(array('nextRunTime' => $nextRunTimeHtml));
                 }
             } catch (Exception $ex) {
                 return Common::json_encode(array('error' => $ex->getMessage()));
@@ -232,7 +235,8 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
      */
     public function downloadMissingGeoIpDb()
     {
-        Piwik::checkUserIsSuperUser();
+        $this->dieIfGeolocationAdminIsDisabled();
+        Piwik::checkUserHasSuperUserAccess();
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
             try {
                 $this->checkTokenInUrl();
@@ -284,7 +288,8 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
      */
     public function setCurrentLocationProvider()
     {
-        Piwik::checkUserIsSuperUser();
+        $this->dieIfGeolocationAdminIsDisabled();
+        Piwik::checkUserHasSuperUserAccess();
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $this->checkTokenInUrl();
 
@@ -386,5 +391,12 @@ class Controller extends \Piwik\Plugin\ControllerAdmin
             );
         }
         return false;
+    }
+
+    private function dieIfGeolocationAdminIsDisabled()
+    {
+        if(!UserCountry::isGeoLocationAdminEnabled()) {
+            throw new \Exception('Geo location setting page has been disabled.');
+        }
     }
 }

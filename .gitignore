@@ -2,12 +2,12 @@ bootstrap.php
 build
 composer.phar
 config/config.ini.php
+config/config*
 crossdomain.xml
 documentation
 docs/
 /favicon.ico
 js/yui*
-logs
 misc/*.dat
 misc/user/logo-header.png
 misc/user/logo.png
@@ -34,10 +34,7 @@ tests/javascript/enable_sqlite
 tests/javascript/enable_sqlite
 tests/javascript/unittest.dbf
 tests/lib/geoip-files/*.dat*
-tests/lib/visualphpunit/app/resource/cache/
-tests/lib/visualphpunit/app/resource/cache/
 tests/lib/xhprof*
-tests/PHPUnit/Fixtures/userAgentParserEnhancedFixtures.yml.new
 tests/PHPUnit/Integration/processed/
 tests/PHPUnit/phpunit.xml
 tests/results/
@@ -51,3 +48,9 @@ misc/.htaccess
 misc/cron/.htaccess
 plugins/.htaccess
 *.pyc
+tests/resources/overlay-test-site-real/
+tests/PHPUnit/proxy/libs
+tests/PHPUnit/proxy/piwik.js
+tests/PHPUnit/proxy/plugins
+tests/PHPUnit/proxy/tests
+config/*.config.ini.php

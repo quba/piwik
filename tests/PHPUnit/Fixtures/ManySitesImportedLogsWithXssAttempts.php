@@ -5,14 +5,10 @@
  * @link    http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
-use Piwik\Common;
 use Piwik\Date;
 use Piwik\Db;
-use Piwik\FrontController;
 use Piwik\Plugins\Annotations\API as APIAnnotations;
 use Piwik\Plugins\Goals\API as APIGoals;
-use Piwik\Plugins\SegmentEditor\API as APISegmentEditor;
-use Piwik\WidgetsList;
 
 require_once PIWIK_INCLUDE_PATH . '/tests/PHPUnit/Fixtures/ManySitesImportedLogs.php';
 
@@ -23,7 +19,6 @@ require_once PIWIK_INCLUDE_PATH . '/tests/PHPUnit/Fixtures/ManySitesImportedLogs
 class Test_Piwik_Fixture_ManySitesImportedLogsWithXssAttempts extends Test_Piwik_Fixture_ManySitesImportedLogs
 {
     public $now = null;
-    public $visitorIdForDeterministicDate = null;
 
     public function __construct()
     {
@@ -36,12 +31,6 @@ class Test_Piwik_Fixture_ManySitesImportedLogsWithXssAttempts extends Test_Piwik
 
         $this->trackVisitsForRealtimeMap(Date::factory('2012-08-11 11:22:33'), $createSeperateVisitors = false);
 
-        $this->visitorIdForDeterministicDate = bin2hex(Db::fetchOne(
-            "SELECT idvisitor FROM " . Common::prefixTable('log_visit')
-          . " WHERE idsite = 2 AND location_latitude IS NOT NULL LIMIT 1"));
-
-        $this->setupDashboards();
-        $this->setupXssSegment();
         $this->addAnnotations();
         $this->trackVisitsForRealtimeMap($this->now);
     }
@@ -63,100 +52,6 @@ class Test_Piwik_Fixture_ManySitesImportedLogsWithXssAttempts extends Test_Piwik
             self::createWebsite($this->dateTime, $ecommerce = 0, $siteName = 'Piwik test two',
                 $siteUrl = 'http://example-site-two.com');
         }
-    }
-    
-    /** Creates two dashboards that split the widgets up into different groups. */
-    public function setupDashboards()
-    {
-        $dashboardColumnCount = 3;
-        $dashboardCount = 3;
-        
-        $layout = array();
-        for ($j = 0; $j != $dashboardColumnCount; ++$j) {
-            $layout[] = array();
-        }
-
-        $dashboards = array();
-        for ($i = 0; $i != $dashboardCount; ++$i) {
-            $dashboards[] = $layout;
-        }
-        
-        $oldGet = $_GET;
-        $_GET['idSite'] = $this->idSite;
-        
-        // collect widgets & sort them so widget order is not important
-        $allWidgets = array();
-        foreach (WidgetsList::get() as $category => $widgets) {
-            $allWidgets = array_merge($allWidgets, $widgets);
-        }
-        usort($allWidgets, function ($lhs, $rhs) {
-            return strcmp($lhs['uniqueId'], $rhs['uniqueId']);
-        });
-
-        // group widgets so they will be spread out across 3 dashboards
-        $groupedWidgets = array();
-        $dashboard = 0;
-        foreach ($allWidgets as $widget) {
-            if ($widget['uniqueId'] == 'widgetSEOgetRank'
-                || $widget['uniqueId'] == 'widgetReferrersgetKeywordsForPage'
-                || $widget['uniqueId'] == 'widgetLivegetVisitorProfilePopup'
-                || strpos($widget['uniqueId'], 'widgetExample') === 0
-            ) {
-                continue;
-            }
-            
-            $dashboard = ($dashboard + 1) % $dashboardCount;
-            $groupedWidgets[$dashboard][] = array(
-                'uniqueId' => $widget['uniqueId'],
-                'parameters' => $widget['parameters']
-            );
-        }
-        
-        // distribute widgets in each dashboard
-        $column = 0;
-        foreach ($groupedWidgets as $dashboardIndex => $dashboardWidgets) {
-            foreach ($dashboardWidgets as $widget) {
-                $column = ($column + 1) % $dashboardColumnCount;
-                
-                $dashboards[$dashboardIndex][$column][] = $widget;
-            }
-        }
-
-        foreach ($dashboards as $id => $layout) {
-            $_GET['name'] = self::makeXssContent('dashboard name' . $id);
-            $_GET['layout'] = Common::json_encode($layout);
-            $_GET['idDashboard'] = $id + 1;
-            FrontController::getInstance()->fetchDispatch('Dashboard', 'saveLayout');
-        }
-
-        // create empty dashboard
-        $widget = reset($allWidgets);
-        $dashboard = array(
-            array(
-                array(
-                    'uniqueId' => $widget['uniqueId'],
-                    'parameters' => $widget['parameters']
-                )
-            ),
-            array(),
-            array()
-        );
-
-        $_GET['name'] = 'D4';
-        $_GET['layout'] = Common::json_encode($dashboard);
-        $_GET['idDashboard'] = 4;
-        $_GET['idSite'] = 2;
-        FrontController::getInstance()->fetchDispatch('Dashboard', 'saveLayout');
-        
-        $_GET = $oldGet;
-    }
-    
-    public function setupXssSegment()
-    {
-        $segmentName = self::makeXssContent('segment');
-        $segmentDefinition = "browserCode==FF";
-        APISegmentEditor::getInstance()->add(
-            $segmentName, $segmentDefinition, $this->idSite, $autoArchive = true, $enabledAllUsers = true);
     }
     
     public function addAnnotations()
@@ -221,16 +116,5 @@ class Test_Piwik_Fixture_ManySitesImportedLogsWithXssAttempts extends Test_Piwik
         $t->setLatitude(-23.55);
         $t->setLongitude(-46.64);
         self::checkResponse($t->doTrackPageView('incredible title!'));
-    }
-    
-    // NOTE: since API_Request does sanitization, API methods do not. when calling them, we must
-    // sometimes do sanitization ourselves.
-    public static function makeXssContent($type, $sanitize = false)
-    {
-        $result = "<script>$('body').html('$type XSS!');</script>";
-        if ($sanitize) {
-            $result = Common::sanitizeInputValue($result);
-        }
-        return $result;
     }
 }

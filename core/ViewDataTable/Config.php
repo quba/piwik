@@ -5,8 +5,6 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik
- * @package Piwik
  */
 
 namespace Piwik\ViewDataTable;
@@ -77,8 +75,6 @@ use Piwik\Plugins\API\API;
  *         }
  *     }
  *
- * @package Piwik
- * @subpackage Piwik_Visualization
  * @api
  */
 class Config
@@ -232,6 +228,12 @@ class Config
      * navigated back to.
      */
     public $related_reports = array();
+
+    /**
+     * "Related Reports" is displayed by default before listing the Related reports,
+     * The string can be changed.
+     */
+    public $related_reports_title;
 
     /**
      * The report title. Used with related reports so report headings can be changed when switching
@@ -559,8 +561,11 @@ class Config
         list($module, $action) = explode('.', $relatedReport);
 
         // don't add the related report if it references this report
-        if ($this->controllerName == $module && $this->controllerAction == $action) {
-            return;
+        if ($this->controllerName == $module
+            && $this->controllerAction == $action) {
+            if(empty($queryParams)) {
+                return;
+            }
         }
 
         $url = ApiRequest::getBaseReportUrl($module, $action, $queryParams);

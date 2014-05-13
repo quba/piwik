@@ -5,18 +5,17 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik
- * @package Piwik
  */
 
 namespace Piwik\Tracker;
 
+use DeviceDetector;
 use Piwik\Common;
 use Piwik\Config;
 use Piwik\IP;
 use Piwik\Piwik;
+use Piwik\Plugins\CustomVariables\CustomVariables;
 use Piwik\Tracker;
-use UserAgentParser;
 
 /**
  * Class used to handle a Visit.
@@ -29,8 +28,6 @@ use UserAgentParser;
  * Whether a visit is NEW or KNOWN we also save the action in the DB.
  * One request to the piwik.php script is associated to one action.
  *
- * @package Piwik
- * @subpackage Tracker
  */
 class Visit implements VisitInterface
 {
@@ -94,7 +91,7 @@ class Visit implements VisitInterface
          * Triggered after visits are tested for exclusion so plugins can modify the IP address
          * persisted with a visit.
          * 
-         * This event is primarily used by the **AnonymizeIP** plugin to anonymize IP addresses.
+         * This event is primarily used by the **PrivacyManager** plugin to anonymize IP addresses.
          * 
          * @param string &$ip The visitor's IP address.
          */
@@ -236,6 +233,8 @@ class Visit implements VisitInterface
         $valuesToUpdate = $this->getExistingVisitFieldsToUpdate($action, $visitIsConverted);
 
         $this->visitorInfo['time_spent_ref_action'] = $this->getTimeSpentReferrerAction();
+
+        $this->request->overrideLocation($valuesToUpdate);
 
         // update visitorInfo
         foreach ($valuesToUpdate AS $name => $value) {
@@ -398,12 +397,11 @@ class Visit implements VisitInterface
         $selectCustomVariables = '';
         // No custom var were found in the request, so let's copy the previous one in a potential conversion later
         if (!$this->visitorCustomVariables) {
-            $selectCustomVariables = ',
-            custom_var_k1, custom_var_v1,
-            custom_var_k2, custom_var_v2,
-            custom_var_k3, custom_var_v3,
-            custom_var_k4, custom_var_v4,
-            custom_var_k5, custom_var_v5';
+            $maxCustomVariables = CustomVariables::getMaxCustomVariables();
+
+            for ($index = 1; $index <= $maxCustomVariables; $index++) {
+                $selectCustomVariables .= ', custom_var_k' . $index . ', custom_var_v' . $index;
+            }
         }
 
         $persistedVisitAttributes = $this->getVisitFieldsPersist();
@@ -515,7 +513,8 @@ class Visit implements VisitInterface
 
             // Custom Variables copied from Visit in potential later conversion
             if (!empty($selectCustomVariables)) {
-                for ($i = 1; $i <= Tracker::MAX_CUSTOM_VARIABLES; $i++) {
+                $maxCustomVariables = CustomVariables::getMaxCustomVariables();
+                for ($i = 1; $i <= $maxCustomVariables; $i++) {
                     if (isset($visitRow['custom_var_k' . $i])
                         && strlen($visitRow['custom_var_k' . $i])
                     ) {
@@ -594,22 +593,24 @@ class Visit implements VisitInterface
         if (is_array($this->userSettingsInformation)) {
             return $this->userSettingsInformation;
         }
-        require_once PIWIK_INCLUDE_PATH . '/libs/UserAgentParser/UserAgentParser.php';
 
         list($plugin_Flash, $plugin_Java, $plugin_Director, $plugin_Quicktime, $plugin_RealPlayer, $plugin_PDF,
             $plugin_WindowsMedia, $plugin_Gears, $plugin_Silverlight, $plugin_Cookie) = $this->request->getPlugins();
 
         $resolution = $this->request->getParam('res');
         $userAgent = $this->request->getUserAgent();
-        $aBrowserInfo = UserAgentParser::getBrowser($userAgent);
 
-        $browserName = ($aBrowserInfo !== false && $aBrowserInfo['id'] !== false) ? $aBrowserInfo['id'] : 'UNK';
-        $browserVersion = ($aBrowserInfo !== false && $aBrowserInfo['version'] !== false) ? $aBrowserInfo['version'] : '';
+        $deviceDetector = new DeviceDetector($userAgent);
+        $deviceDetector->parse();
+        $aBrowserInfo = $deviceDetector->getBrowser();
 
-        $os = UserAgentParser::getOperatingSystem($userAgent);
-        $os = $os === false ? 'UNK' : $os['id'];
+        $browserName = !empty($aBrowserInfo['short_name']) ? $aBrowserInfo['short_name'] : 'UNK';
+        $browserVersion = !empty($aBrowserInfo['version']) ? $aBrowserInfo['version'] : '';
 
-        $browserLang = $this->request->getBrowserLanguage();
+        $os = $deviceDetector->getOS();
+        $os = empty($os['short_name']) ? 'UNK' : $os['short_name'];
+
+        $browserLang = substr($this->request->getBrowserLanguage(), 0, 20); // limit the length of this string to match db
         $configurationHash = $this->getConfigHash(
             $os,
             $browserName,
@@ -944,7 +945,13 @@ class Visit implements VisitInterface
         }
 
         // Ecommerce buyer status
-        $valuesToUpdate['visit_goal_buyer'] = $this->goalManager->getBuyerType($this->visitorInfo['visit_goal_buyer']);
+        $visitEcommerceStatus = $this->goalManager->getBuyerType($this->visitorInfo['visit_goal_buyer']);
+
+        if($visitEcommerceStatus != GoalManager::TYPE_BUYER_NONE
+            // only update if the value has changed (prevents overwriting the value in case a request has updated it in the meantime)
+            && $visitEcommerceStatus != $this->visitorInfo['visit_goal_buyer']) {
+            $valuesToUpdate['visit_goal_buyer'] = $visitEcommerceStatus;
+        }
 
         // Custom Variables overwrite previous values on each page view
         $valuesToUpdate = array_merge($valuesToUpdate, $this->visitorCustomVariables);

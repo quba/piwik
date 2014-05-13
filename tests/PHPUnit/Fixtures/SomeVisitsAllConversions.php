@@ -11,7 +11,7 @@ use Piwik\Plugins\Goals\API;
 /**
  * Adds one site and tracks a couple conversions.
  */
-class Piwik_Test_Fixture_SomeVisitsAllConversions extends Test_Piwik_BaseFixture
+class Piwik_Test_Fixture_SomeVisitsAllConversions extends Fixture
 {
     public $dateTime = '2009-01-04 00:11:42';
     public $idSite = 1;
@@ -55,7 +55,7 @@ class Piwik_Test_Fixture_SomeVisitsAllConversions extends Test_Piwik_BaseFixture
     private function trackVisits()
     {
         $dateTime = $this->dateTime;
-        $idSite = $this->idSite;
+        $idSite = 1;
         $idGoal_OneConversionPerVisit = $this->idGoal_OneConversionPerVisit;
         $idGoal_MultipleConversionPerVisit = $this->idGoal_MultipleConversionPerVisit;
 
@@ -84,5 +84,11 @@ class Piwik_Test_Fixture_SomeVisitsAllConversions extends Test_Piwik_BaseFixture
         // 1st goal should Now be tracked
         $t->setForceVisitDateTime(Date::factory($dateTime)->addHour(0.61)->getDatetime());
         self::checkResponse($t->doTrackGoal($idGoal_OneConversionPerVisit, $revenue = 656));
+
+        // few minutes later, create a new_visit
+        $t->setForceVisitDateTime(Date::factory($dateTime)->addHour(0.7)->getDatetime());
+        $t->setTokenAuth($this->getTokenAuth());
+        $t->setForceNewVisit();
+        $t->doTrackPageView('This is tracked in a new visit.');
     }
 }

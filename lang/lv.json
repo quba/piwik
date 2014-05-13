@@ -18,9 +18,6 @@
         "SubmenuPagesExit": "Izejas lapas",
         "SubmenuPageTitles": "Lapas virsraksti"
     },
-    "AnonymizeIP": {
-        "PluginDescription": "Anonimizē apmeklētāju IP adrešu pēdējo baitu(s). Nepieciešamību nosaka Jūsu vietējie privātuma likumi\/pavadlīnijas."
-    },
     "API": {
         "PluginDescription": "Visi Piwik dati ir pieejami caur vienkāršiem API. Šis spraudnis ir tīkla servisa pieejas punkts, kuru varat izsaukt, lai iegūtu savus tīkla analīzes datus xml, json, php, csv un citos formātos.",
         "QuickDocumentationTitle": "Ātra API dokumentācija",
@@ -116,30 +113,15 @@
         "WidgetPreview": "Logdaļas priekšstatījums"
     },
     "Feedback": {
-        "CategoryHire": "Nolīgt Piwik konsultantu",
-        "CategorySecurity": "Ziņot par drošības problēmu",
-        "CategoryShareStory": "Dalīties ar Piwik veiksmes stāstu",
-        "CategorySponsor": "Sponsorēt Piwik",
         "ContactThePiwikTeam": "Kontaktēties ar Piwik komandu!",
-        "DetailsPlease": "(lūdzu norādiet detaļas)",
         "DoYouHaveBugReportOrFeatureRequest": "Vai Jums ir kļūdas ziņojums vai papildus funkcionalitātes pieprasījums?",
-        "ExceptionBodyLength": "Ziņai ir jābūt vismaz %s simbolus garai.",
-        "ExceptionNoUrls": "Lai izvairītos no mēstulēm, ziņa nedrīkst saturēt saites.",
-        "HowToAnonymizeIP": "Kā lai nomaskēju apmeklētāju IP adreses?",
-        "HowToExclude": "Kā izslēgt manu apmeklējumu uzskaiti?",
         "IWantTo": "Es vēlos:",
         "LearnWaysToParticipate": "Uzzināt vairāk par to, kā Jūs varat %s piedalīties%s",
         "ManuallySendEmailTo": "Lūdzu manuāli nosūtiet savu ziņu uz",
-        "MessageSent": "Jūsu ziņa tika nosūtīta Piwik komandai.",
-        "MyEmailAddress": "Mana e-pasta adrese:",
-        "MyMessage": "Mans ziņa:",
         "PluginDescription": "Sūtiet savas atsauksmes Piwik komandai. Dalieties ar savām idejām un ieteikumiem ar mums!",
         "SendFeedback": "Sūtīt atsauksmes",
         "SpecialRequest": "Vai Jums ir speciāls pieprasījums Piwik komandai?",
-        "ThankYou": "Paldies, ka palīdzat uzlabot Piwik!",
-        "ThePiwikTeam": "Piwik komanda",
-        "WhyAreMyVisitsNoTracked": "Kāpēc netiek uzskaitīts manas vietnes apmeklējums?",
-        "WhyWrongCountry": "Kāpēc Piwik rāda manu apmeklējumu no nepareizas valsts?"
+        "ThankYou": "Paldies, ka palīdzat uzlabot Piwik!"
     },
     "General": {
         "AbandonedCarts": "Pamestie iepirkumu grozi",
@@ -350,7 +332,6 @@
         "Password": "Parole",
         "Period": "Periods",
         "Piechart": "Sektoru diagramma",
-        "PiwikXIsAvailablePleaseNotifyPiwikAdmin": "%s ir pieejams. Lūdzu paziņojiet vietnes administratoram.",
         "PiwikXIsAvailablePleaseUpdateNow": "Ir pieejams Piwik %1$s. %2$sLūdzu atjauniniet tagad!%3$s (apskatiet %4$sizmaiņas%5$s).",
         "PleaseSpecifyValue": "Lūdzu norādiet '%s' vērtību.",
         "PleaseUpdatePiwik": "Lūdzu modernizējiet savu Piwik",
@@ -366,6 +347,7 @@
         "Quantity": "Skaits",
         "Recommended": "(ieteicams)",
         "RecordsToPlot": "Ieraksti plānošanai",
+        "Refresh": "Atjaunināt",
         "RefreshPage": "Atsvaidzināt lapu",
         "Report": "Ziņot",
         "Reports": "Atskaites",
@@ -507,8 +489,6 @@
     "Installation": {
         "CommunityNewsletter": "sūtiet epastu par kopienas jaunumiem (jauniem spraudņiem, jaunām iespējām, utt.)",
         "Congratulations": "Apsveicam",
-        "DatabaseCheck": "Datubāzes pārbaude",
-        "DatabaseClientVersion": "Datubāzes klienta versija",
         "DatabaseCreation": "Datubāzes izveide",
         "DatabaseErrorConnect": "Kļūda mēģinot sasniegt datubāzes serveri",
         "DatabaseServerVersion": "Datubāzes servera versija",
@@ -546,7 +526,6 @@
         "SystemCheckExtensions": "Citi vajadzīgie paplašinājumi",
         "SystemCheckFileIntegrity": "Datņu integritāte",
         "SystemCheckFunctions": "Nepieciešamās metodes",
-        "SystemCheckGD": "GD > 2.x (grafika)",
         "SystemCheckIconvHelp": "Jums jāiestata un jāpārbūvē PHP ar ieslēgtu \"iconv\" atbalstu, --with-iconv.",
         "SystemCheckMbstring": "mbstring",
         "SystemCheckMemoryLimit": "Atmiņas limits",
@@ -555,7 +534,7 @@
         "SystemCheckOtherFunctions": "Citas metodes",
         "SystemCheckPdoAndMysqliHelp": "Uz Linux servera Jūs varat kompilēt php ar sekojošiem parametriem: %1$s Savā php.ini datnē pievienojiet sekojošas līnijas: %2$s",
         "SystemCheckPhp": "PHP versija",
-        "SystemCheckPhpPdoAndMysqliSite": "Vairāk informācija par <a style=\"color:red\" href=\"http:\/\/php.net\/pdo\">PHP PDO<\/a> un <a style=\"color:red\" href=\"http:\/\/php.net\/mysqli\">MYSQLI<\/a>.",
+        "SystemCheckPhpPdoAndMysqli": "Vairāk informācija par %1$sPHP PDO%2$s un %3$sMYSQLI%4$s.",
         "SystemCheckSplHelp": "Jums jāiestata un jāpārbūvē PHP ar ieslēgtu Standard PHP Library (SPL) (pēc noklusējuma).",
         "SystemCheckWarnDomHelp": "Jums ir jāieslēdz \"dom\" paplašinājums (piem., instalējiet \"php-dom\" un\/vai \"php-xml\" pakotnes).",
         "SystemCheckWarnJsonHelp": "Jums ir jāieslēdz \"json\" paplašinājums (piem., instalējiet \"php-json\" pakotni) labākai veiktspējai.",
@@ -623,6 +602,7 @@
         "YouAreOffline": "Atvainojiet, bet Jūs paļaik atrodaties bezsaistē"
     },
     "PrivacyManager": {
+        "AnonymizeIpInlineHelp": "Anonimizē apmeklētāju IP adrešu pēdējo baitu(s). Nepieciešamību nosaka Jūsu vietējie privātuma likumi\/pavadlīnijas.",
         "ClickHereSettings": "Klikšķiniet šeit lai piekļūtu %s iestatījumiem.",
         "DeleteLogInfo": "Tiks dzēsti žurnāli no sekojošām tabulām: %s",
         "DeleteLogsOlderThan": "Dzēst vecākus žurnālus par",
@@ -718,7 +698,6 @@
         "SelectACity": "Izvēlieties pilsētu",
         "ShowTrackingTag": "Apskatīt izsekošanas kodu",
         "Sites": "Vietnes",
-        "SuperUserCan": "Superlietotājs var arī %s norādīt globālos iestatījumus%s jaunām lapā.",
         "Timezone": "Laika zona",
         "TrackingTags": "%s izsekošanas kods",
         "Urls": "Adreses",
@@ -1252,7 +1231,6 @@
         "ExceptionInvalidPassword": "Parolei jābūt garumā no %1$s līdz %2$s simboliem.",
         "ExceptionLoginExists": "Lietotājvārds '%s' jau eksistē.",
         "ExceptionPasswordMD5HashExpected": "UsersManager.getTokenAuth sagaida MD5 kodētu paroli (32 simbolu garu tekstu). Lūdzu pielietojiet md5() metodi parolei pirms izsaucat šo metodi.",
-        "ExceptionSuperUser": "Pieprasītais lietotājs ir superlietotājs, kuru nav iespējams pieprasīt, labot vai dzēst izmantojot API. Jūs varat šī lietotāja datus manuāli labot Piwik iestatījumu datnē.",
         "ExceptionUserDoesNotExist": "Lietotājs '%s' neeksistē.",
         "ExcludeVisitsViaCookie": "Neiekļaut Jūsu pašu apmeklējumus izmantojot sīkdatni",
         "ForAnonymousUsersReportDateToLoadByDefault": "Atskaite, kuru ielādēt pēc noklusējuma anonīmiem lietotājiem",
@@ -1270,7 +1248,6 @@
         "ReportToLoadByDefault": "Atskaite, kuru ielādēt pēc noklusējuma",
         "TheLoginScreen": "Pieteikšanās skats",
         "ThereAreCurrentlyNRegisteredUsers": "Pašlaik ir %s reģistrēti lietotāji.",
-        "TheSuperUserAliasCannotBeChanged": "Superlietotāja aizstājējvārdu nav iespējams izmainīt.",
         "TypeYourPasswordAgain": "Ierakstiet savu jauno paroli atkārtoti.",
         "User": "Lietotājs",
         "UsersManagement": "Lietotāju pārvaldīšana",

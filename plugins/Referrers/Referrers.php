@@ -5,8 +5,6 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik_Plugins
- * @package Referrers
  */
 namespace Piwik\Plugins\Referrers;
 
@@ -15,8 +13,8 @@ use Piwik\Common;
 use Piwik\Menu\MenuMain;
 use Piwik\Piwik;
 use Piwik\Plugin\ViewDataTable;
-use Piwik\Plugins\CoreVisualizations\Visualizations\HtmlTable\AllColumns;
 use Piwik\Plugins\CoreVisualizations\Visualizations\HtmlTable;
+use Piwik\Plugins\CoreVisualizations\Visualizations\HtmlTable\AllColumns;
 use Piwik\Plugins\CoreVisualizations\Visualizations\JqplotGraph\Pie;
 use Piwik\SettingsPiwik;
 use Piwik\WidgetsList;
@@ -27,12 +25,11 @@ use Piwik\WidgetsList;
 require_once PIWIK_INCLUDE_PATH . '/plugins/Referrers/functions.php';
 
 /**
- * @package Referrers
  */
 class Referrers extends \Piwik\Plugin
 {
     /**
-     * @see Piwik_Plugin::getListHooksRegistered
+     * @see Piwik\Plugin::getListHooksRegistered
      */
     public function getListHooksRegistered()
     {
@@ -43,9 +40,18 @@ class Referrers extends \Piwik\Plugin
             'API.getReportMetadata'           => 'getReportMetadata',
             'API.getSegmentDimensionMetadata' => 'getSegmentsMetadata',
             'ViewDataTable.configure'         => 'configureViewDataTable',
-            'ViewDataTable.getDefaultType'    => 'getDefaultTypeViewDataTable'
+            'ViewDataTable.getDefaultType'    => 'getDefaultTypeViewDataTable',
+            'Insights.addReportToOverview'    => 'addReportToInsightsOverview'
         );
         return $hooks;
+    }
+
+    public function addReportToInsightsOverview(&$reports)
+    {
+        $reports['Referrers_getWebsites']  = array();
+        $reports['Referrers_getCampaigns'] = array();
+        $reports['Referrers_getSocials']   = array();
+        $reports['Referrers_getSearchEngines'] = array();
     }
 
     public function getReportMetadata(&$reports)
@@ -257,32 +263,32 @@ class Referrers extends \Piwik\Plugin
     public function getReportsWithGoalMetrics(&$dimensions)
     {
         $dimensions = array_merge($dimensions, array(
-                                                    array('category' => Piwik::translate('Referrers_Referrers'),
-                                                          'name'     => Piwik::translate('Referrers_Keywords'),
-                                                          'module'   => 'Referrers',
-                                                          'action'   => 'getKeywords',
-                                                    ),
-                                                    array('category' => Piwik::translate('Referrers_Referrers'),
-                                                          'name'     => Piwik::translate('Referrers_SearchEngines'),
-                                                          'module'   => 'Referrers',
-                                                          'action'   => 'getSearchEngines',
-                                                    ),
-                                                    array('category' => Piwik::translate('Referrers_Referrers'),
-                                                          'name'     => Piwik::translate('Referrers_Websites'),
-                                                          'module'   => 'Referrers',
-                                                          'action'   => 'getWebsites',
-                                                    ),
-                                                    array('category' => Piwik::translate('Referrers_Referrers'),
-                                                          'name'     => Piwik::translate('Referrers_Campaigns'),
-                                                          'module'   => 'Referrers',
-                                                          'action'   => 'getCampaigns',
-                                                    ),
-                                                    array('category' => Piwik::translate('Referrers_Referrers'),
-                                                          'name'     => Piwik::translate('Referrers_Type'),
-                                                          'module'   => 'Referrers',
-                                                          'action'   => 'getReferrerType',
-                                                    ),
-                                               ));
+            array('category' => Piwik::translate('Referrers_Referrers'),
+                  'name'     => Piwik::translate('Referrers_Type'),
+                  'module'   => 'Referrers',
+                  'action'   => 'getReferrerType',
+            ),
+            array('category' => Piwik::translate('Referrers_Referrers'),
+                  'name'     => Piwik::translate('Referrers_Keywords'),
+                  'module'   => 'Referrers',
+                  'action'   => 'getKeywords',
+            ),
+            array('category' => Piwik::translate('Referrers_Referrers'),
+                  'name'     => Piwik::translate('Referrers_SearchEngines'),
+                  'module'   => 'Referrers',
+                  'action'   => 'getSearchEngines',
+            ),
+            array('category' => Piwik::translate('Referrers_Referrers'),
+                  'name'     => Piwik::translate('Referrers_Websites'),
+                  'module'   => 'Referrers',
+                  'action'   => 'getWebsites',
+            ),
+            array('category' => Piwik::translate('Referrers_Referrers'),
+                  'name'     => Piwik::translate('Referrers_Campaigns'),
+                  'module'   => 'Referrers',
+                  'action'   => 'getCampaigns',
+            ),
+        ));
     }
 
     public function getDefaultTypeViewDataTable(&$defaultViewTypes)
@@ -477,14 +483,6 @@ class Referrers extends \Piwik\Plugin
         $view->config->addTranslation('label', Piwik::translate('Referrers_ColumnCampaign'));
 
         $view->requestConfig->filter_limit = 25;
-
-        if (Common::getRequestVar('viewDataTable', false) != 'graphEvolution') {
-            $view->config->show_footer_message = Piwik::translate('Referrers_CampaignFooterHelp',
-                array('<a target="_blank" href="http://piwik.org/docs/tracking-campaigns/">',
-                      '</a> - <a target="_blank" href="http://piwik.org/docs/tracking-campaigns/url-builder/">',
-                      '</a>')
-            );
-        }
     }
 
     private function configureViewForGetKeywordsFromCampaignId(ViewDataTable $view)

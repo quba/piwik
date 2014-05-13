@@ -5,8 +5,6 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik
- * @package Piwik
  */
 namespace Piwik;
 
@@ -18,7 +16,6 @@ use Exception;
  * 
  * Used to check for the latest Piwik version and download updates.
  *
- * @package Piwik
  */
 class Http
 {
@@ -446,7 +443,7 @@ class Http
                 CURLOPT_HEADER         => is_resource($file) ? false : true,
                 CURLOPT_CONNECTTIMEOUT => $timeout,
             );
-            // Case archive.php is triggering archiving on https:// and the certificate is not valid
+            // Case core:archive command is triggering archiving on https:// and the certificate is not valid
             if ($acceptInvalidSslCertificate) {
                 $curl_options += array(
                     CURLOPT_SSL_VERIFYHOST => false,

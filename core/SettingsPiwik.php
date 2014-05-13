@@ -5,8 +5,6 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik
- * @package Piwik
  */
 namespace Piwik;
 
@@ -15,12 +13,12 @@ use Exception;
 /**
  * Contains helper methods that can be used to get common Piwik settings.
  * 
- * @package Piwik
  */
 class SettingsPiwik
 {
+    const OPTION_PIWIK_URL = 'piwikUrl';
     /**
-     * Get salt from [superuser] section
+     * Get salt from [General] section
      *
      * @return string
      */
@@ -28,7 +26,7 @@ class SettingsPiwik
     {
         static $salt = null;
         if (is_null($salt)) {
-            $salt = @Config::getInstance()->superuser['salt'];
+            $salt = @Config::getInstance()->General['salt'];
         }
         return $salt;
     }
@@ -150,14 +148,6 @@ class SettingsPiwik
     }
 
     /**
-     * Cache for result of getPiwikUrl.
-     * Can be overwritten for testing purposes only.
-     *
-     * @var string
-     */
-    static public $piwikUrlCache = null;
-
-    /**
      * Returns the URL to this Piwik instance, eg. **http://demo.piwik.org/** or **http://example.org/piwik/**.
      *
      * @return string
@@ -165,17 +155,14 @@ class SettingsPiwik
      */
     public static function getPiwikUrl()
     {
-        // Only set in tests
-        if (self::$piwikUrlCache !== null) {
-            return self::$piwikUrlCache;
-        }
+        $url = Option::get(self::OPTION_PIWIK_URL);
 
-        $key = 'piwikUrl';
-        $url = Option::get($key);
+        $isPiwikCoreDispatching = defined('PIWIK_ENABLE_DISPATCH') && PIWIK_ENABLE_DISPATCH;
         if (Common::isPhpCliMode()
-            // in case archive.php is triggered with domain localhost
+            // in case core:archive command is triggered (often with localhost domain)
             || SettingsServer::isArchivePhpTriggered()
-            || defined('PIWIK_MODE_ARCHIVE')
+            // When someone else than core is dispatching this request then we return the URL as it is read only
+            || !$isPiwikCoreDispatching
         ) {
             return $url;
         }
@@ -187,11 +174,47 @@ class SettingsPiwik
             || $currentUrl != $url
         ) {
             if (strlen($currentUrl) >= strlen('http://a/')) {
-                Option::set($key, $currentUrl, $autoLoad = true);
+                self::overwritePiwikUrl($currentUrl);
             }
             $url = $currentUrl;
         }
+
+        if(ProxyHttp::isHttps()) {
+            $url = str_replace("http://", "https://", $url);
+        }
         return $url;
+    }
+
+    /**
+     * Return true if Piwik is installed (installation is done).
+     * @return bool
+     */
+    public static function isPiwikInstalled()
+    {
+        $config = Config::getInstance()->getLocalConfigPath();
+        $exists = file_exists($config);
+
+        // Piwik is installed if the config file is found
+        if(!$exists) {
+            return false;
+        }
+
+        $general = Config::getInstance()->General;
+
+        $isInstallationInProgress = false;
+        if (array_key_exists('installation_in_progress', $general)) {
+            $isInstallationInProgress = (bool) $general['installation_in_progress'];
+        }
+        if($isInstallationInProgress) {
+            return false;
+        }
+
+        // Check that the database section is really set, ie. file is not empty
+        if(empty(Config::getInstance()->database['username'])) {
+            return false;
+        }
+        return true;
+
     }
 
     /**
@@ -241,25 +264,20 @@ class SettingsPiwik
      */
     public static function rewriteTmpPathWithHostname($path)
     {
-        try {
-            $configByHost = Config::getInstance()->getConfigHostnameIfSet();
-        } catch (Exception $e) {
-            // Config file not found
-        }
-        if (empty($configByHost)) {
-            return $path;
-        }
-
         $tmp = '/tmp/';
-        if (($posTmp = strrpos($path, $tmp)) === false) {
-            throw new Exception("The path $path was expected to contain the string /tmp/ ");
-        }
+        $path = self::rewritePathAppendHostname($path, $tmp);
+        return $path;
+    }
 
-        $tmpToReplace = $tmp . $configByHost . '/';
-
-        // replace only the latest occurrence (in case path contains twice /tmp)
-        $path = substr_replace($path, $tmpToReplace, $posTmp, strlen($tmp));
-
+    /**
+     * If Piwik uses per-domain config file, make sure CustomLogo is unique
+     * @param $path
+     * @return mixed
+     */
+    public static function rewriteMiscUserPathWithHostname($path)
+    {
+        $tmp = 'misc/user/';
+        $path = self::rewritePathAppendHostname($path, $tmp);
         return $path;
     }
 
@@ -269,7 +287,7 @@ class SettingsPiwik
      * @param $piwikServerUrl
      * @return bool
      */
-    static public function checkPiwikServerWorking($piwikServerUrl)
+    static public function checkPiwikServerWorking($piwikServerUrl, $acceptInvalidSSLCertificates = false)
     {
         // Now testing if the webserver is running
         try {
@@ -281,11 +299,8 @@ class SettingsPiwik
                                                 $file = null,
                                                 $followDepth = 0,
                                                 $acceptLanguage = false,
-
-                                                // Accept self signed certificates for developers
-                                                $acceptInvalidSslCertificate = true
-        );
-
+                                                $acceptInvalidSSLCertificates
+            );
         } catch (Exception $e) {
             $fetched = "ERROR fetching: " . $e->getMessage();
         }
@@ -301,14 +316,74 @@ class SettingsPiwik
 
     public static function getCurrentGitBranch()
     {
-        $firstLineOfGitHead = file(PIWIK_INCLUDE_PATH . '/.git/HEAD');
+        $file = PIWIK_INCLUDE_PATH . '/.git/HEAD';
+        if(!file_exists($file)) {
+            return '';
+        }
+        $firstLineOfGitHead = file($file);
         if (empty($firstLineOfGitHead)) {
             return '';
         }
         $firstLineOfGitHead = $firstLineOfGitHead[0];
-        $parts = explode("/", $firstLineOfGitHead);
+        $parts = explode('/', $firstLineOfGitHead);
+        if (empty($parts[2])) {
+            return '';
+        }
         $currentGitBranch = trim($parts[2]);
         return $currentGitBranch;
     }
 
+    /**
+     * @param $pathToRewrite
+     * @param $leadingPathToAppendHostnameTo
+     * @param $hostname
+     * @return mixed
+     * @throws \Exception
+     */
+    protected static function rewritePathAppendHostname($pathToRewrite, $leadingPathToAppendHostnameTo)
+    {
+        $hostname = self::getConfigHostname();
+        if (empty($hostname)) {
+            return $pathToRewrite;
+        }
+
+        if (($posTmp = strrpos($pathToRewrite, $leadingPathToAppendHostnameTo)) === false) {
+            throw new Exception("The path $pathToRewrite was expected to contain the string  $leadingPathToAppendHostnameTo");
+        }
+
+        $tmpToReplace = $leadingPathToAppendHostnameTo . $hostname . '/';
+
+        // replace only the latest occurrence (in case path contains twice /tmp)
+        $pathToRewrite = substr_replace($pathToRewrite, $tmpToReplace, $posTmp, strlen($leadingPathToAppendHostnameTo));
+        return $pathToRewrite;
+    }
+
+    /**
+     * @return bool|string
+     */
+    protected static function getConfigHostname()
+    {
+        if(!self::isPiwikInstalled()
+            && Common::isPhpCliMode()) {
+            // enterprise:install use case
+            return Config::getHostname();
+        }
+        return Config::getInstance()->getConfigHostnameIfSet();
+    }
+
+    /**
+     * @param $currentUrl
+     */
+    public static function overwritePiwikUrl($currentUrl)
+    {
+        Option::set(self::OPTION_PIWIK_URL, $currentUrl, $autoLoad = true);
+    }
+
+    /**
+     * @return bool
+     */
+    public static function isHttpsForced()
+    {
+        return Config::getInstance()->General['force_ssl'] == 1;
+    }
 }

@@ -5,19 +5,15 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik_Plugins
- * @package Actions
  */
 namespace Piwik\Plugins\Actions;
 
 use Piwik\Piwik;
 use Piwik\View;
-use Piwik\ViewDataTable\Factory;
 
 /**
  * Actions controller
  *
- * @package Actions
  */
 class Controller extends \Piwik\Plugin\Controller
 {

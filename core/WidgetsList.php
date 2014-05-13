@@ -5,8 +5,6 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik
- * @package PluginsFunctions
  */
 namespace Piwik;
 
@@ -16,7 +14,6 @@ namespace Piwik;
  * Reports are added as dashboard widgets through the {@hook WidgetsList.addWidgets}
  * event. Observers for this event should call the {@link add()} method to add reports.
  * 
- * @package PluginsFunctions
  * @api
  */
 class WidgetsList
@@ -107,6 +104,7 @@ class WidgetsList
             'UserSettings_VisitorSettings',
             'DevicesDetection_DevicesDetection',
             'General_Actions',
+            'Events_Events',
             'Actions_SubmenuSitesearch',
             'Referrers_Referrers',
             'Goals_Goals',
@@ -166,12 +164,16 @@ class WidgetsList
      */
     static public function remove($widgetCategory, $widgetName = false)
     {
+        if (!isset(self::$widgets[$widgetCategory])) {
+            return;
+        }
+
         if (empty($widgetName)) {
             unset(self::$widgets[$widgetCategory]);
             return;
         }
         foreach (self::$widgets[$widgetCategory] as $id => $widget) {
-            if ($widget['name'] == $widgetName) {
+            if ($widget['name'] == $widgetName || $widget['name'] == Piwik::translate($widgetName)) {
                 unset(self::$widgets[$widgetCategory][$id]);
                 return;
             }

@@ -5,12 +5,11 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik
- * @package Piwik
  */
 namespace Piwik\ViewDataTable;
 
 use Piwik\Common;
+use Piwik\Option;
 use Piwik\Piwik;
 use Piwik\Plugin\ViewDataTable;
 use Piwik\Plugins\CoreVisualizations\Visualizations\Cloud;
@@ -18,12 +17,11 @@ use Piwik\Plugins\CoreVisualizations\Visualizations\HtmlTable;
 use Piwik\Plugins\CoreVisualizations\Visualizations\JqplotGraph\Bar;
 use Piwik\Plugins\CoreVisualizations\Visualizations\JqplotGraph\Pie;
 use Piwik\Plugins\Goals\Visualizations\Goals;
+use Piwik\Plugins\Insights\Visualizations\Insight;
 
 /**
  * ViewDataTable Manager.
  *
- * @package Piwik
- * @subpackage ViewDataTable
  */
 class Manager
 {
@@ -198,6 +196,12 @@ class Manager
             $result[] = $normalViewIcons;
         }
 
+        // add insight views
+        $insightsViewIcons = array(
+            'class'   => 'tableInsightViews',
+            'buttons' => array(),
+        );
+
         // add graph views
         $graphViewIcons = array(
             'class'   => 'tableGraphViews tableGraphCollapsed',
@@ -222,11 +226,20 @@ class Manager
 
         foreach ($nonCoreVisualizations as $id => $klass) {
             if ($klass::canDisplayViewDataTable($view)) {
-                $graphViewIcons['buttons'][] = static::getFooterIconFor($id);
+                $footerIcon = static::getFooterIconFor($id);
+                if (Insight::ID == $footerIcon['id']) {
+                    $insightsViewIcons['buttons'][] = static::getFooterIconFor($id);
+                } else {
+                    $graphViewIcons['buttons'][] = static::getFooterIconFor($id);
+                }
             }
         }
 
         $graphViewIcons['buttons'] = array_filter($graphViewIcons['buttons']);
+
+        if (!empty($insightsViewIcons['buttons'])) {
+            $result[] = $insightsViewIcons;
+        }
 
         if (!empty($graphViewIcons['buttons'])) {
             $result[] = $graphViewIcons;
@@ -257,5 +270,47 @@ class Manager
             'title' => Piwik::translate($klass::FOOTER_ICON_TITLE),
             'icon'  => $klass::FOOTER_ICON,
         );
+    }
+
+    public static function clearAllViewDataTableParameters()
+    {
+        Option::deleteLike('viewDataTableParameters_%');
+    }
+
+    public static function clearUserViewDataTableParameters($userLogin)
+    {
+        Option::deleteLike('viewDataTableParameters_' . $userLogin . '_%');
+    }
+
+    public static function getViewDataTableParameters($login, $controllerAction)
+    {
+        $paramsKey = self::buildViewDataTableParametersOptionKey($login, $controllerAction);
+        $params    = Option::get($paramsKey);
+
+        if (empty($params)) {
+            return array();
+        }
+
+        $params = json_decode($params);
+        $params = (array) $params;
+
+        return $params;
+    }
+
+    public static function saveViewDataTableParameters($login, $controllerAction, $parametersToOverride)
+    {
+        $params = self::getViewDataTableParameters($login, $controllerAction);
+
+        foreach ($parametersToOverride as $key => $value) {
+            $params[$key] = $value;
+        }
+
+        $paramsKey = self::buildViewDataTableParametersOptionKey($login, $controllerAction);
+        Option::set($paramsKey, json_encode($params));
+    }
+
+    private static function buildViewDataTableParametersOptionKey($login, $controllerAction)
+    {
+        return sprintf('viewDataTableParameters_%s_%s', $login, $controllerAction);
     }
 }

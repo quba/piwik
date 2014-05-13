@@ -12,11 +12,12 @@ use Piwik\Plugins\Goals\API;
  * Add one site and track many visits with custom variables & campaign IDs and
  * use visit ID instead of heuristics.
  */
-class Test_Piwik_Fixture_SomeVisitsCustomVariablesCampaignsNotHeuristics extends Test_Piwik_BaseFixture
+class Test_Piwik_Fixture_SomeVisitsCustomVariablesCampaignsNotHeuristics extends Fixture
 {
     public $dateTime = '2009-01-04 00:11:42';
     public $idSite = 1;
     public $idGoal = 1;
+    private $tmpHost = '';
 
     public function setUp()
     {
@@ -26,7 +27,6 @@ class Test_Piwik_Fixture_SomeVisitsCustomVariablesCampaignsNotHeuristics extends
 
     public function tearDown()
     {
-        // empty
     }
 
     private function setUpWebsitesAndGoals()
@@ -123,22 +123,35 @@ class Test_Piwik_Fixture_SomeVisitsCustomVariablesCampaignsNotHeuristics extends
         self::checkResponse($t4->doTrackPageView('Bonjour le monde'));
     }
 
+    // see updateDomainHash() in piwik.js
+    private function getFirstPartyCookieDomainHash()
+    {
+        $host = \Piwik\Url::getHost();
+        $cookiePath = PiwikTracker::DEFAULT_COOKIE_PATH;
+        return substr(sha1( $host . $cookiePath), 0, 4);
+    }
+
     /**
      * Test setting/getting the first party cookie via the PHP Tracking Client
      * @param $t
      */
     private function testFirstPartyCookies(PiwikTracker $t)
     {
+        $domainHash = $this->getFirstPartyCookieDomainHash();
+        $idCookieName = '_pk_id_1_' . $domainHash;
+        $refCookieName = '_pk_ref_1_' . $domainHash;
+        $customVarCookieName = '_pk_cvar_1_' . $domainHash;
+
         $viewts = '1302307497';
         $uuid = 'ca0afe7b6b692ff5';
-        $_COOKIE['_pk_id_1_1fff'] = $uuid . '.1302307497.1.' . $viewts . '.1302307497';
-        $_COOKIE['_pk_ref_1_1fff'] = '["YEAH","RIGHT!",1302307497,"http://referrer.example.org/page/sub?query=test&test2=test3"]';
-        $_COOKIE['_pk_cvar_1_1fff'] = '{"1":["VAR 1 set, var 2 not set","yes"],"3":["var 3 set","yes!!!!"]}';
+        $_COOKIE[$idCookieName] = $uuid . '.1302307497.1.' . $viewts . '.1302307497';
+        $_COOKIE[$refCookieName] = '["YEAH","RIGHT!",1302307497,"http://referrer.example.org/page/sub?query=test&test2=test3"]';
+        $_COOKIE[$customVarCookieName] = '{"1":["VAR 1 set, var 2 not set","yes"],"3":["var 3 set","yes!!!!"]}';
 
         // test loading 'id' cookie
         self::assertContains("_viewts=" . $viewts, $t->getUrlTrackPageView());
         self::assertEquals($uuid, $t->getVisitorId());
-        self::assertEquals($t->getAttributionInfo(), $_COOKIE['_pk_ref_1_1fff']);
+        self::assertEquals($t->getAttributionInfo(), $_COOKIE[$refCookieName]);
         self::assertEquals(array("VAR 1 set, var 2 not set", "yes"), $t->getCustomVariable(1));
         self::assertFalse($t->getCustomVariable(2));
         self::assertEquals(array("var 3 set", "yes!!!!"), $t->getCustomVariable(3));
@@ -147,8 +160,8 @@ class Test_Piwik_Fixture_SomeVisitsCustomVariablesCampaignsNotHeuristics extends
         self::assertFalse($t->getCustomVariable(6));
         self::assertFalse($t->getCustomVariable(-1));
 
-        unset($_COOKIE['_pk_id_1_1fff']);
-        unset($_COOKIE['_pk_ref_1_1fff']);
-        unset($_COOKIE['_pk_cvar_1_1fff']);
+        unset($_COOKIE[$idCookieName]);
+        unset($_COOKIE[$refCookieName]);
+        unset($_COOKIE[$customVarCookieName]);
     }
 }

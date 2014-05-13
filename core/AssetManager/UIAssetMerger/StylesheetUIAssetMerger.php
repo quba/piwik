@@ -5,16 +5,14 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik
- * @package Piwik
  */
 namespace Piwik\AssetManager\UIAssetMerger;
 
 use Exception;
+use lessc;
 use Piwik\AssetManager\UIAsset;
 use Piwik\AssetManager\UIAssetMerger;
 use Piwik\Piwik;
-use lessc;
 
 class StylesheetUIAssetMerger extends UIAssetMerger
 {
@@ -33,7 +31,12 @@ class StylesheetUIAssetMerger extends UIAssetMerger
     protected function getMergedAssets()
     {
         foreach($this->getAssetCatalog()->getAssets() as $uiAsset) {
-            $this->lessCompiler->addImportDir(dirname($uiAsset->getAbsoluteLocation()));
+
+            $content = $uiAsset->getContent();
+            if (false !== strpos($content, '@import')) {
+                $this->lessCompiler->addImportDir(dirname($uiAsset->getAbsoluteLocation()));
+            }
+
         }
 
         return $this->lessCompiler->compile($this->getConcatenatedAssets());
@@ -133,8 +136,10 @@ class StylesheetUIAssetMerger extends UIAssetMerger
     protected function countDirectoriesInPathToRoot($uiAsset)
     {
         $rootDirectory = realpath($uiAsset->getBaseDirectory());
-        if ($rootDirectory != '/' && substr_compare($rootDirectory, '/', -1)) {
-            $rootDirectory .= '/';
+
+        if ($rootDirectory != PATH_SEPARATOR
+            && substr($rootDirectory, -strlen(PATH_SEPARATOR)) !== PATH_SEPARATOR) {
+            $rootDirectory .= PATH_SEPARATOR;
         }
         $rootDirectoryLen = strlen($rootDirectory);
         return $rootDirectoryLen;

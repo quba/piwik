@@ -5,8 +5,6 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik_Plugins
- * @package CoreHome
  */
 namespace Piwik\Plugins\CoreHome;
 
@@ -21,15 +19,16 @@ use Piwik\Piwik;
 use Piwik\Plugins\CoreHome\DataTableRowAction\MultiRowEvolution;
 use Piwik\Plugins\CoreHome\DataTableRowAction\RowEvolution;
 use Piwik\Plugins\CorePluginsAdmin\MarketplaceApiClient;
+use Piwik\Plugins\Dashboard\DashboardManagerControl;
 use Piwik\Plugins\UsersManager\API;
 use Piwik\Site;
 use Piwik\UpdateCheck;
 use Piwik\Url;
 use Piwik\View;
+use Piwik\ViewDataTable\Manager as ViewDataTableManager;
 
 /**
  *
- * @package CoreHome
  */
 class Controller extends \Piwik\Plugin\Controller
 {
@@ -80,6 +79,7 @@ class Controller extends \Piwik\Plugin\Controller
         $view = new View('@CoreHome/getDefaultIndexView');
         $this->setGeneralVariablesView($view);
         $view->menu = MenuMain::getInstance()->getMenu();
+        $view->dashboardSettingsControl = new DashboardManagerControl();
         $view->content = '';
         return $view;
     }
@@ -189,9 +189,9 @@ class Controller extends \Piwik\Plugin\Controller
     {
         $view = new View('@CoreHome/getDonateForm');
         if (Common::getRequestVar('widget', false)
-            && Piwik::isUserIsSuperUser()
+            && Piwik::hasUserSuperUserAccess()
         ) {
-            $view->footerMessage = Piwik::translate('CoreHome_OnlyForAdmin');
+            $view->footerMessage = Piwik::translate('CoreHome_OnlyForSuperUserAccess');
         }
         return $view->render();
     }
@@ -225,7 +225,31 @@ class Controller extends \Piwik\Plugin\Controller
 
         $url = "https://www.paypal.com/cgi-bin/webscr?" . Url::getQueryStringFromParameters($parameters);
 
-        header("Location: $url");
+        Url::redirectToUrl($url);
         exit;
+    }
+
+    public function getSiteSelector()
+    {
+        return "<div piwik-siteselector class=\"sites_autocomplete\" switch-site-on-select=\"false\"></div>";
+    }
+
+    public function getPeriodSelector()
+    {
+        $view = new View("@CoreHome/_periodSelect");
+        $this->setGeneralVariablesView($view);
+        return $view->render();
+    }
+
+    public function saveViewDataTableParameters()
+    {
+        Piwik::checkUserIsNotAnonymous();
+        $this->checkTokenInUrl();
+
+        $reportId   = Common::getRequestVar('report_id', null, 'string');
+        $parameters = (array) Common::getRequestVar('parameters', null, 'json');
+        $login      = Piwik::getCurrentUserLogin();
+
+        ViewDataTableManager::saveViewDataTableParameters($login, $reportId, $parameters);
     }
 }

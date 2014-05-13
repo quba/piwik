@@ -5,15 +5,13 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  */
-use Piwik\AssetManager;
 use Piwik\AssetManager\UIAsset\OnDiskUIAsset;
 use Piwik\AssetManager\UIAsset;
+use Piwik\AssetManager;
 use Piwik\AssetManager\UIAssetFetcher\StaticUIAssetFetcher;
 use Piwik\Config;
-use Piwik\EventDispatcher;
-use Piwik\Plugin\Manager;
 use Piwik\Plugin;
-use Piwik\Theme;
+use Piwik\Plugin\Manager;
 
 require_once PIWIK_INCLUDE_PATH . "/tests/PHPUnit/Core/AssetManager/UIAssetCacheBusterMock.php";
 require_once PIWIK_INCLUDE_PATH . "/tests/PHPUnit/Core/AssetManager/PluginManagerMock.php";
@@ -416,7 +414,7 @@ class AssetManagerTest extends PHPUnit_Framework_TestCase
         return
             '<script type="text/javascript">' . PHP_EOL .
             'var translations = [];' . PHP_EOL .
-            'if(typeof(piwik_translations) == \'undefined\') { var piwik_translations = new Object; }for(var i in translations) { piwik_translations[i] = translations[i];} function _pk_translate(translationStringId) { if( typeof(piwik_translations[translationStringId]) != \'undefined\' ){  return piwik_translations[translationStringId]; }return "The string "+translationStringId+" was not loaded in javascript. Make sure it is added in the Translate.getClientSideTranslationKeys hook.";}' . PHP_EOL .
+            'if(typeof(piwik_translations) == \'undefined\') { var piwik_translations = new Object; }for(var i in translations) { piwik_translations[i] = translations[i];} ' . PHP_EOL .
             '</script>';
     }
 
@@ -502,7 +500,7 @@ class AssetManagerTest extends PHPUnit_Framework_TestCase
     /**
      * @group Core
      */
-    public function test_getMergedCoreJavaScript_AlreadyGenerated_MergedAssetsDisabled_Stale()
+    public function test_getMergedCoreJavaScript_AlreadyGenerated_MergedAssetsDeactivated_Stale()
     {
         $this->disableMergedAssets();
 
@@ -534,10 +532,13 @@ class AssetManagerTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * We always regenerate if cache buster changes
      * @group Core
      */
     public function test_getMergedStylesheet_Generated_MergedAssetsEnabled_Stale()
     {
+        $this->activateMergedAssets();
+        
         $this->setStylesheetCacheBuster(self::FIRST_CACHE_BUSTER_SS);
 
         $this->triggerGetMergedStylesheet();
@@ -548,10 +549,13 @@ class AssetManagerTest extends PHPUnit_Framework_TestCase
 
         $this->triggerGetMergedStylesheet();
 
-        $this->validateDateDidNotChange($modDateBeforeSecondRequest);
+        $this->validateDateIsMoreRecent($modDateBeforeSecondRequest);
+
+        $this->validateMergedStylesheet();
     }
 
     /**
+     * We always regenerate if cache buster changes
      * @group Core
      */
     public function test_getMergedStylesheet_Generated_MergedAssetsDisabled_Stale()

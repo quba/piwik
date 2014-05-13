@@ -5,8 +5,6 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik_Plugins
- * @package Live
  */
 namespace Piwik\Plugins\Live;
 
@@ -17,11 +15,18 @@ use Piwik\View;
 
 /**
  * A special DataTable visualization for the Live.getLastVisitsDetails API method.
+ *
+ * @property VisitorLog\Config $config
  */
 class VisitorLog extends Visualization
 {
     const ID = 'Piwik\Plugins\Live\VisitorLog';
     const TEMPLATE_FILE = "@Live/_dataTableViz_visitorLog.twig";
+
+    public static function getDefaultConfig()
+    {
+        return new VisitorLog\Config();
+    }
 
     public function beforeLoadDataTable()
     {
@@ -33,7 +38,6 @@ class VisitorLog extends Visualization
         ));
 
         $this->requestConfig->filter_sort_column = 'idVisit';
-        $this->requestConfig->filter_sort_order  = 'asc';
         $this->requestConfig->filter_limit       = 20;
         $this->requestConfig->disable_generic_filters = true;
 
@@ -48,6 +52,7 @@ class VisitorLog extends Visualization
      */
     public function beforeRender()
     {
+        $this->config->disable_row_actions = true;
         $this->config->datatable_js_type = 'VisitorLog';
         $this->config->enable_sort       = false;
         $this->config->show_search       = false;
@@ -92,9 +97,11 @@ class VisitorLog extends Visualization
                     'hasEcommerce',
                     function ($actionDetails) use ($filterEcommerce) {
                         foreach ($actionDetails as $action) {
-                            if ($action['type'] == 'ecommerceOrder'
-                                || $filterEcommerce == 2
-                            ) {
+                            $isEcommerceOrder = $action['type'] == 'ecommerceOrder'
+                                       && $filterEcommerce == \Piwik\Plugins\Goals\Controller::ECOMMERCE_LOG_SHOW_ORDERS;
+                            $isAbandonedCart = $action['type'] == 'ecommerceAbandonedCart'
+                                       && $filterEcommerce == \Piwik\Plugins\Goals\Controller::ECOMMERCE_LOG_SHOW_ABANDONED_CARTS;
+                            if($isAbandonedCart || $isEcommerceOrder) {
                                 return true;
                             }
                         }

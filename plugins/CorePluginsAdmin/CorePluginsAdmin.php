@@ -5,26 +5,23 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik_Plugins
- * @package CorePluginsAdmin
  */
 namespace Piwik\Plugins\CorePluginsAdmin;
 
 use Piwik\Config;
 use Piwik\Menu\MenuAdmin;
 use Piwik\Piwik;
+use Piwik\Plugin;
 use Piwik\ScheduledTask;
-use Piwik\ScheduledTime\Daily;
 use Piwik\ScheduledTime;
 
 /**
  *
- * @package CorePluginsAdmin
  */
 class CorePluginsAdmin extends \Piwik\Plugin
 {
     /**
-     * @see Piwik_Plugin::getListHooksRegistered
+     * @see Piwik\Plugin::getListHooksRegistered
      */
     public function getListHooksRegistered()
     {
@@ -49,6 +46,23 @@ class CorePluginsAdmin extends \Piwik\Plugin
             ScheduledTime::factory('daily'),
             ScheduledTask::LOWEST_PRIORITY
         );
+
+        if (self::isMarketplaceEnabled()) {
+            $sendUpdateNotification = new ScheduledTask ($this,
+                'sendNotificationIfUpdatesAvailable',
+                null,
+                ScheduledTime::factory('daily'),
+                ScheduledTask::LOWEST_PRIORITY);
+            $tasks[] = $sendUpdateNotification;
+        }
+    }
+
+    public function sendNotificationIfUpdatesAvailable()
+    {
+        $updateCommunication = new UpdateCommunication();
+        if ($updateCommunication->isEnabled()) {
+            $updateCommunication->sendNotificationIfUpdatesAvailable();
+        }
     }
 
     public function getStylesheetFiles(&$stylesheets)
@@ -62,7 +76,7 @@ class CorePluginsAdmin extends \Piwik\Plugin
         $pluginsUpdateMessage = '';
         $themesUpdateMessage = '';
 
-        if (Piwik::isUserIsSuperUser() && static::isMarketplaceEnabled()) {
+        if (Piwik::hasUserSuperUserAccess() && static::isMarketplaceEnabled()) {
             $marketplace = new Marketplace();
             $pluginsHavingUpdate = $marketplace->getPluginsHavingUpdate($themesOnly = false);
             $themesHavingUpdate = $marketplace->getPluginsHavingUpdate($themesOnly = true);
@@ -78,11 +92,11 @@ class CorePluginsAdmin extends \Piwik\Plugin
         MenuAdmin::getInstance()->add('CorePluginsAdmin_MenuPlatform', null, "", !Piwik::isUserIsAnonymous(), $order = 7);
         MenuAdmin::getInstance()->add('CorePluginsAdmin_MenuPlatform', Piwik::translate('General_Plugins') . $pluginsUpdateMessage,
             array('module' => 'CorePluginsAdmin', 'action' => 'plugins', 'activated' => ''),
-            Piwik::isUserIsSuperUser(),
+            Piwik::hasUserSuperUserAccess(),
             $order = 1);
         MenuAdmin::getInstance()->add('CorePluginsAdmin_MenuPlatform', Piwik::translate('CorePluginsAdmin_Themes') . $themesUpdateMessage,
             array('module' => 'CorePluginsAdmin', 'action' => 'themes', 'activated' => ''),
-            Piwik::isUserIsSuperUser(),
+            Piwik::hasUserSuperUserAccess(),
             $order = 3);
 
         if (static::isMarketplaceEnabled()) {
@@ -98,6 +112,11 @@ class CorePluginsAdmin extends \Piwik\Plugin
     public static function isMarketplaceEnabled()
     {
         return (bool) Config::getInstance()->General['enable_marketplace'];
+    }
+
+    public static function isPluginsAdminEnabled()
+    {
+        return (bool) Config::getInstance()->General['enable_plugins_admin'];
     }
 
     public function getJsFiles(&$jsFiles)

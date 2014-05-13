@@ -14,7 +14,7 @@ require_once PIWIK_INCLUDE_PATH . '/tests/PHPUnit/MockLocationProvider.php';
 /**
  * Adds one site and tracks 60 visits (15 visitors, one action per visit).
  */
-class Test_Piwik_Fixture_ManyVisitsWithMockLocationProvider extends Test_Piwik_BaseFixture
+class Test_Piwik_Fixture_ManyVisitsWithMockLocationProvider extends Fixture
 {
     public $idSite = 1;
     public $dateTime = '2010-01-03 01:22:33';
@@ -34,7 +34,7 @@ class Test_Piwik_Fixture_ManyVisitsWithMockLocationProvider extends Test_Piwik_B
 
     public function tearDown()
     {
-        $this->unsetMockLocationProvider();
+        Test_Piwik_Fixture_ManyVisitsWithGeoIP::unsetLocationProvider();
     }
 
     private function setUpWebsitesAndGoals()
@@ -219,8 +219,4 @@ class Test_Piwik_Fixture_ManyVisitsWithMockLocationProvider extends Test_Piwik_B
         );
     }
 
-    private function unsetMockLocationProvider()
-    {
-        LocationProvider::setCurrentProvider('default');
-    }
 }

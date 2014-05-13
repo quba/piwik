@@ -5,17 +5,15 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik_Plugins
- * @package CorePluginsAdmin
  */
 namespace Piwik\Plugins\CorePluginsAdmin;
 
 use Piwik\Date;
 use Piwik\Piwik;
+use Piwik\Plugin\Dependency as PluginDependency;
 
 /**
  *
- * @package CorePluginsAdmin
  */
 class Marketplace
 {
@@ -53,6 +51,14 @@ class Marketplace
         }
 
         return $names;
+    }
+
+    public function getAllAvailablePluginNames()
+    {
+        return array_merge(
+            $this->getAvailablePluginNames(true),
+            $this->getAvailablePluginNames(false)
+        );
     }
 
     public function searchPlugins($query, $sort, $themesOnly)
@@ -118,6 +124,7 @@ class Marketplace
 
                     $updatePlugin['currentVersion'] = $loadedPlugin->getVersion();
                     $updatePlugin['isActivated'] = $pluginManager->isPluginActivated($updatePlugin['name']);
+                    $updatePlugin = $this->addMissingRequirements($updatePlugin);
                     break;
                 }
             }
@@ -158,7 +165,33 @@ class Marketplace
             }
         }
 
+        $plugin = $this->addMissingRequirements($plugin);
+
         return $plugin;
     }
 
+    /**
+     * @param $plugin
+     */
+    private function addMissingRequirements($plugin)
+    {
+        $plugin['missingRequirements'] = array();
+
+        if (empty($plugin['versions']) || !is_array($plugin['versions'])) {
+            return $plugin;
+        }
+
+        $latestVersion = $plugin['versions'][count($plugin['versions']) - 1];
+
+        if (empty($latestVersion['requires'])) {
+            return $plugin;
+        }
+
+        $requires = $latestVersion['requires'];
+
+        $dependency = new PluginDependency();
+        $plugin['missingRequirements'] = $dependency->getMissingDependencies($requires);
+
+        return $plugin;
+    }
 }

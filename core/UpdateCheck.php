@@ -5,8 +5,6 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik
- * @package Piwik
  */
 namespace Piwik;
 
@@ -16,7 +14,6 @@ use Piwik\Plugins\SitesManager\API;
 /**
  * Class to check if a newer version of Piwik is available
  *
- * @package Piwik
  */
 class UpdateCheck
 {
@@ -26,6 +23,11 @@ class UpdateCheck
     const LATEST_VERSION = 'UpdateCheck_LatestVersion';
     const SOCKET_TIMEOUT = 2;
 
+    private static function isAutoUpdateEnabled()
+    {
+        return (bool) Config::getInstance()->General['enable_auto_update'];
+    }
+
     /**
      * Check for a newer version
      *
@@ -34,6 +36,10 @@ class UpdateCheck
      */
     public static function check($force = false, $interval = null)
     {
+        if(!self::isAutoUpdateEnabled()) {
+            return;
+        }
+
         if ($interval === null) {
             $interval = self::CHECK_INTERVAL;
         }
@@ -76,6 +82,16 @@ class UpdateCheck
     }
 
     /**
+     * Returns the latest available version number. Does not perform a check whether a later version is available.
+     *
+     * @return false|string
+     */
+    public static function getLatestVersion()
+    {
+        return Option::get(self::LATEST_VERSION);
+    }
+
+    /**
      * Returns version number of a newer Piwik release.
      *
      * @return string|bool  false if current version is the latest available,
@@ -83,7 +99,7 @@ class UpdateCheck
      */
     public static function isNewestVersionAvailable()
     {
-        $latestVersion = Option::get(self::LATEST_VERSION);
+        $latestVersion = self::getLatestVersion();
         if (!empty($latestVersion)
             && version_compare(Version::VERSION, $latestVersion) == -1
         ) {

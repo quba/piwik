@@ -9,6 +9,7 @@ use Piwik\Access;
 use Piwik\Date;
 use Piwik\Piwik;
 use Piwik\Plugins\SegmentEditor\API;
+use Piwik\Plugins\SegmentEditor\Model;
 use Piwik\Plugins\SitesManager\API as APISitesManager;
 
 /**
@@ -30,7 +31,7 @@ class Plugins_SegmentEditorTest extends DatabaseTestCase
         FakeAccess::setIdSitesView(array(1, 2));
         FakeAccess::setIdSitesAdmin(array(3, 4));
 
-        //finally we set the user as a super user by default
+        //finally we set the user as a Super User by default
         FakeAccess::$superUser = true;
         FakeAccess::$superUserLogin = 'superusertest';
         Access::setSingletonInstance($pseudoMockAccess);
@@ -108,20 +109,21 @@ class Plugins_SegmentEditorTest extends DatabaseTestCase
         $this->assertEquals($segment, $expected);
 
         // There is a segment to process for this particular site
-        $segments = API::getInstance()->getAll($idSite, $autoArchived = true);
+        $model = new Model();
+        $segments = $model->getSegmentsToAutoArchive($idSite);
         unset($segments[0]['ts_created']);
         $this->assertEquals($segments, array($expected));
 
         // There is no segment to process for a non existing site
         try {
-            $segments = API::getInstance()->getAll(33, $autoArchived = true);
+            $segments = $model->getSegmentsToAutoArchive(33);
             $this->fail();
         } catch(Exception $e) {
             // expected
         }
 
         // There is no segment to process across all sites
-        $segments = API::getInstance()->getAll($idSite = false, $autoArchived = true);
+        $segments = $model->getSegmentsToAutoArchive($idSite = false);
         $this->assertEquals($segments, array());
     }
 

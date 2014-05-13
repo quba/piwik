@@ -3,7 +3,7 @@
 	<row>
 		<idSite>1</idSite>
 		<idVisit>1</idVisit>
-		<visitIp>74.125.31.0</visitIp>
+		<visitIp>74.125.31.147</visitIp>
 		<visitorType>new</visitorType>
 		<visitorTypeIcon />
 		<visitConverted>0</visitConverted>
@@ -21,6 +21,12 @@
 				<pageIdAction>1</pageIdAction>
 				<serverTimePretty>Sun 7 Apr 10:00:00</serverTimePretty>
 				<pageId>1</pageId>
+				<customVariables>
+					<row>
+						<customVariablePageName1>HTTP-code</customVariablePageName1>
+						<customVariablePageValue1>200</customVariablePageValue1>
+					</row>
+				</customVariables>
 				<icon />
 			</row>
 		</actionDetails>
@@ -75,7 +81,7 @@
 		<browserCode>IE</browserCode>
 		<browserVersion>7.0</browserVersion>
 		<screenType>unknown</screenType>
-		<deviceType>desktop</deviceType>
+		<deviceType>Desktop</deviceType>
 		<resolution>unknown</resolution>
 		<screenTypeIcon>plugins/UserSettings/images/screens/unknown.gif</screenTypeIcon>
 		<plugins />
@@ -89,7 +95,7 @@
 	<row>
 		<idSite>1</idSite>
 		<idVisit>2</idVisit>
-		<visitIp>74.125.31.0</visitIp>
+		<visitIp>74.125.31.147</visitIp>
 		<visitorType>new</visitorType>
 		<visitorTypeIcon />
 		<visitConverted>0</visitConverted>
@@ -107,6 +113,12 @@
 				<pageIdAction>1</pageIdAction>
 				<serverTimePretty>Sat 6 Apr 11:00:00</serverTimePretty>
 				<pageId>2</pageId>
+				<customVariables>
+					<row>
+						<customVariablePageName1>HTTP-code</customVariablePageName1>
+						<customVariablePageValue1>200</customVariablePageValue1>
+					</row>
+				</customVariables>
 				<icon />
 			</row>
 		</actionDetails>
@@ -161,7 +173,7 @@
 		<browserCode>IE</browserCode>
 		<browserVersion>7.0</browserVersion>
 		<screenType>unknown</screenType>
-		<deviceType>desktop</deviceType>
+		<deviceType>Desktop</deviceType>
 		<resolution>unknown</resolution>
 		<screenTypeIcon>plugins/UserSettings/images/screens/unknown.gif</screenTypeIcon>
 		<plugins />
@@ -175,7 +187,7 @@
 	<row>
 		<idSite>1</idSite>
 		<idVisit>3</idVisit>
-		<visitIp>74.125.31.0</visitIp>
+		<visitIp>74.125.31.147</visitIp>
 		<visitorType>new</visitorType>
 		<visitorTypeIcon />
 		<visitConverted>0</visitConverted>
@@ -193,6 +205,12 @@
 				<pageIdAction>1</pageIdAction>
 				<serverTimePretty>Fri 5 Apr 12:00:00</serverTimePretty>
 				<pageId>3</pageId>
+				<customVariables>
+					<row>
+						<customVariablePageName1>HTTP-code</customVariablePageName1>
+						<customVariablePageValue1>200</customVariablePageValue1>
+					</row>
+				</customVariables>
 				<icon />
 			</row>
 		</actionDetails>
@@ -247,7 +265,7 @@
 		<browserCode>IE</browserCode>
 		<browserVersion>7.0</browserVersion>
 		<screenType>unknown</screenType>
-		<deviceType>desktop</deviceType>
+		<deviceType>Desktop</deviceType>
 		<resolution>unknown</resolution>
 		<screenTypeIcon>plugins/UserSettings/images/screens/unknown.gif</screenTypeIcon>
 		<plugins />

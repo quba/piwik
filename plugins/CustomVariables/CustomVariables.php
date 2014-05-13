@@ -5,8 +5,6 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik_Plugins
- * @package CustomVariables
  */
 namespace Piwik\Plugins\CustomVariables;
 
@@ -14,11 +12,11 @@ use Piwik\ArchiveProcessor;
 use Piwik\Menu\MenuMain;
 use Piwik\Piwik;
 use Piwik\Plugin\ViewDataTable;
+use Piwik\Tracker\Cache;
 use Piwik\Tracker;
 use Piwik\WidgetsList;
 
 /**
- * @package CustomVariables
  */
 class CustomVariables extends \Piwik\Plugin
 {
@@ -30,7 +28,7 @@ class CustomVariables extends \Piwik\Plugin
     }
 
     /**
-     * @see Piwik_Plugin::getListHooksRegistered
+     * @see Piwik\Plugin::getListHooksRegistered
      */
     public function getListHooksRegistered()
     {
@@ -40,7 +38,7 @@ class CustomVariables extends \Piwik\Plugin
             'Goals.getReportsWithGoalMetrics' => 'getReportsWithGoalMetrics',
             'API.getReportMetadata'           => 'getReportMetadata',
             'API.getSegmentDimensionMetadata' => 'getSegmentsMetadata',
-            'ViewDataTable.configure'         => 'configureViewDataTable',
+            'ViewDataTable.configure'         => 'configureViewDataTable'
         );
         return $hooks;
     }
@@ -53,6 +51,50 @@ class CustomVariables extends \Piwik\Plugin
     public function addMenus()
     {
         MenuMain::getInstance()->add('General_Visitors', 'CustomVariables_CustomVariables', array('module' => 'CustomVariables', 'action' => 'index'), $display = true, $order = 50);
+    }
+
+    public function install()
+    {
+        Model::install();
+    }
+
+    public function uninstall()
+    {
+        Model::uninstall();
+    }
+
+    /**
+     * There are also some hardcoded places in JavaScript
+     * @return int
+     */
+    public static function getMaxLengthCustomVariables()
+    {
+        return 200;
+    }
+
+    public static function getMaxCustomVariables()
+    {
+        $cache    = Cache::getCacheGeneral();
+        $cacheKey = 'CustomVariables.MaxNumCustomVariables';
+
+        if (!array_key_exists($cacheKey, $cache)) {
+
+            $maxCustomVar = 0;
+
+            foreach (Model::getScopes() as $scope) {
+                $model = new Model($scope);
+                $highestIndex = $model->getHighestCustomVarIndex();
+
+                if ($highestIndex > $maxCustomVar) {
+                    $maxCustomVar = $highestIndex;
+                }
+            }
+
+            $cache[$cacheKey] = $maxCustomVar;
+            Cache::setCacheGeneral($cache);
+        }
+
+        return $cache[$cacheKey];
     }
 
     /**
@@ -84,7 +126,9 @@ class CustomVariables extends \Piwik\Plugin
 
     public function getSegmentsMetadata(&$segments)
     {
-        for ($i = 1; $i <= Tracker::MAX_CUSTOM_VARIABLES; $i++) {
+        $maxCustomVariables = self::getMaxCustomVariables();
+
+        for ($i = 1; $i <= $maxCustomVariables; $i++) {
             $segments[] = array(
                 'type'       => 'dimension',
                 'category'   => 'CustomVariables_CustomVariables',
@@ -146,13 +190,9 @@ class CustomVariables extends \Piwik\Plugin
 
     private function configureViewForGetCustomVariables(ViewDataTable $view)
     {
-        $footerMessage = Piwik::translate('CustomVariables_TrackingHelp',
-            array('<a target="_blank" href="http://piwik.org/docs/custom-variables/">', '</a>'));
-
         $view->config->columns_to_display = array('label', 'nb_actions', 'nb_visits');
         $view->config->show_goals = true;
         $view->config->subtable_controller_action = 'getCustomVariablesValuesFromNameId';
-        $view->config->show_footer_message = $footerMessage;
         $view->config->addTranslation('label', Piwik::translate('CustomVariables_ColumnCustomVariableName'));
         $view->requestConfig->filter_sort_column = 'nb_actions';
         $view->requestConfig->filter_sort_order  = 'desc';

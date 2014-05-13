@@ -5,8 +5,6 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik
- * @package Piwik
  */
 
 namespace Piwik;
@@ -38,12 +36,14 @@ use Exception;
  *     Config::getInstance()->MySection = array('myoption' => 1);
  *     Config::getInstance()->forceSave();
  * 
- * @package Piwik
- * @subpackage Piwik_Config
  * @method static \Piwik\Config getInstance()
  */
 class Config extends Singleton
 {
+    const DEFAULT_LOCAL_CONFIG_PATH = '/config/config.ini.php';
+    const DEFAULT_COMMON_CONFIG_PATH = '/config/common.config.ini.php';
+    const DEFAULT_GLOBAL_CONFIG_PATH = '/config/global.ini.php';
+
     /**
      * Contains configuration files values
      *
@@ -52,17 +52,11 @@ class Config extends Singleton
     protected $initialized = false;
     protected $configGlobal = array();
     protected $configLocal = array();
+    protected $configCommon = array();
     protected $configCache = array();
     protected $pathGlobal = null;
+    protected $pathCommon = null;
     protected $pathLocal = null;
-
-    /**
-     * Constructor
-     */
-    protected function __construct()
-    {
-        $this->clear();
-    }
 
     /**
      * @var boolean
@@ -70,24 +64,63 @@ class Config extends Singleton
     protected $isTest = false;
 
     /**
+     * Constructor
+     */
+    public function __construct($pathGlobal = null, $pathLocal = null, $pathCommon = null)
+    {
+        $this->pathGlobal = $pathGlobal ?: self::getGlobalConfigPath();
+        $this->pathCommon = $pathCommon ?: self::getCommonConfigPath();
+        $this->pathLocal = $pathLocal ?: self::getLocalConfigPath();
+    }
+
+    /**
+     * Returns the path to the local config file used by this instance.
+     *
+     * @return string
+     */
+    public function getLocalPath()
+    {
+        return $this->pathLocal;
+    }
+
+    /**
+     * Returns the path to the global config file used by this instance.
+     *
+     * @return string
+     */
+    public function getGlobalPath()
+    {
+        return $this->pathGlobal;
+    }
+
+    /**
+     * Returns the path to the common config file used by this instance.
+     *
+     * @return string
+     */
+    public function getCommonPath()
+    {
+        return $this->pathCommon;
+    }
+
+    /**
      * Enable test environment
      *
      * @param string $pathLocal
      * @param string $pathGlobal
+     * @param string $pathCommon
      */
-    public function setTestEnvironment($pathLocal = null, $pathGlobal = null)
+    public function setTestEnvironment($pathLocal = null, $pathGlobal = null, $pathCommon = null, $allowSaving = false)
     {
-        $this->isTest = true;
+        if (!$allowSaving) {
+            $this->isTest = true;
+        }
 
         $this->clear();
 
-        if ($pathLocal) {
-            $this->pathLocal = $pathLocal;
-        }
-
-        if ($pathGlobal) {
-            $this->pathGlobal = $pathGlobal;
-        }
+        $this->pathLocal = $pathLocal ?: Config::getLocalConfigPath();
+        $this->pathGlobal = $pathGlobal ?: Config::getGlobalConfigPath();
+        $this->pathCommon = $pathCommon ?: Config::getCommonConfigPath();
 
         $this->init();
 
@@ -101,14 +134,15 @@ class Config extends Singleton
         }
 
         // Ensure local mods do not affect tests
-        if (is_null($pathGlobal)) {
+        if (empty($pathGlobal)) {
+            $this->configCache['log'] = $this->configGlobal['log'];
             $this->configCache['Debug'] = $this->configGlobal['Debug'];
-            $this->configCache['branding'] = $this->configGlobal['branding'];
             $this->configCache['mail'] = $this->configGlobal['mail'];
             $this->configCache['General'] = $this->configGlobal['General'];
             $this->configCache['Segments'] = $this->configGlobal['Segments'];
             $this->configCache['Tracker'] = $this->configGlobal['Tracker'];
             $this->configCache['Deletelogs'] = $this->configGlobal['Deletelogs'];
+            $this->configCache['Deletereports'] = $this->configGlobal['Deletereports'];
         }
 
         // for unit tests, we set that no plugin is installed. This will force
@@ -124,10 +158,6 @@ class Config extends Singleton
             $this->configCache['Plugins_Tracker'] = $this->configGlobal['Plugins_Tracker'];
             $this->configCache['Plugins_Tracker']['Plugins_Tracker'][] = 'DevicesDetection';
         }
-
-        // to avoid weird session error in travis
-        $this->configCache['General']['session_save_handler'] = 'dbtables';
-
     }
 
     /**
@@ -137,7 +167,17 @@ class Config extends Singleton
      */
     protected static function getGlobalConfigPath()
     {
-        return PIWIK_USER_PATH . '/config/global.ini.php';
+        return PIWIK_USER_PATH . self::DEFAULT_GLOBAL_CONFIG_PATH;
+    }
+
+    /**
+     * Returns absolute path to the common configuration file.
+     *
+     * @return string
+     */
+    public static function getCommonConfigPath()
+    {
+        return PIWIK_USER_PATH . self::DEFAULT_COMMON_CONFIG_PATH;
     }
 
     /**
@@ -151,8 +191,7 @@ class Config extends Singleton
         if ($path) {
             return $path;
         }
-
-        return PIWIK_USER_PATH . '/config/config.ini.php';
+        return PIWIK_USER_PATH . self::DEFAULT_LOCAL_CONFIG_PATH;
     }
 
     private static function getLocalConfigInfoForHostname($hostname)
@@ -171,6 +210,17 @@ class Config extends Singleton
         return $this->getHostname();
     }
 
+    public function getClientSideOptions()
+    {
+        $general = $this->General;
+
+        return array(
+            'action_url_category_delimiter' => $general['action_url_category_delimiter'],
+            'autocomplete_min_sites' => $general['autocomplete_min_sites'],
+            'datatable_export_range_as_day' => $general['datatable_export_range_as_day']
+        );
+    }
+
     protected static function getByDomainConfigPath()
     {
         $host       = self::getHostname();
@@ -184,9 +234,19 @@ class Config extends Singleton
         return false;
     }
 
-    protected static function getHostname()
+    /**
+     * Returns the hostname of the current request (without port number)
+     *
+     * @return string
+     */
+    public static function getHostname()
     {
-        $host = Url::getHost($checkIfTrusted = false); // Check trusted requires config file which is not ready yet
+        // Check trusted requires config file which is not ready yet
+        $host = Url::getHost($checkIfTrusted = false);
+
+        // Remove any port number to get actual hostname
+        $host = Url::getHostSanitized($host);
+
         return $host;
     }
 
@@ -199,7 +259,7 @@ class Config extends Singleton
      *     $config->save();
      *
      * @param string $hostname eg piwik.example.com
-     *
+     * @return string
      * @throws \Exception In case the domain contains not allowed characters
      */
     public function forceUsageOfLocalHostnameConfig($hostname)
@@ -235,9 +295,6 @@ class Config extends Singleton
         $this->configLocal = array();
         $this->configCache = array();
         $this->initialized = false;
-
-        $this->pathGlobal = self::getGlobalConfigPath();
-        $this->pathLocal = self::getLocalConfigPath();
     }
 
     /**
@@ -248,7 +305,7 @@ class Config extends Singleton
     public function init()
     {
         $this->initialized = true;
-        $reportError = !empty($GLOBALS['PIWIK_TRACKER_MODE']);
+        $reportError = SettingsServer::isTrackerApiRequest();
 
         // read defaults from global.ini.php
         if (!is_readable($this->pathGlobal) && $reportError) {
@@ -256,22 +313,36 @@ class Config extends Singleton
         }
 
         $this->configGlobal = _parse_ini_file($this->pathGlobal, true);
+
         if (empty($this->configGlobal) && $reportError) {
             Piwik_ExitWithMessage(Piwik::translate('General_ExceptionUnreadableFileDisabledMethod', array($this->pathGlobal, "parse_ini_file()")));
         }
 
-        if ($reportError) {
-            $this->checkLocalConfigFound();
-        }
+        $this->configCommon = _parse_ini_file($this->pathCommon, true);
+
+        // Check config.ini.php last
+        $this->checkLocalConfigFound();
+
         $this->configLocal = _parse_ini_file($this->pathLocal, true);
         if (empty($this->configLocal) && $reportError) {
             Piwik_ExitWithMessage(Piwik::translate('General_ExceptionUnreadableFileDisabledMethod', array($this->pathLocal, "parse_ini_file()")));
         }
     }
 
+    public function existsLocalConfig()
+    {
+        return is_readable($this->pathLocal);
+    }
+
+    public function deleteLocalConfig()
+    {
+        $configLocal = $this->getLocalPath();
+        unlink($configLocal);
+    }
+
     public function checkLocalConfigFound()
     {
-        if (!is_readable($this->pathLocal)) {
+        if (!$this->existsLocalConfig()) {
             throw new Exception(Piwik::translate('General_ExceptionConfigurationFileNotFound', array($this->pathLocal)));
         }
     }
@@ -327,7 +398,8 @@ class Config extends Singleton
 
             // must be called here, not in init(), since setTestEnvironment() calls init(). (this avoids
             // infinite recursion)
-            Piwik::postTestEvent('Config.createConfigSingleton', array( $this ));
+            Piwik::postTestEvent('Config.createConfigSingleton',
+                array($this, &$this->configCache, &$this->configLocal));
         }
 
         // check cache for merged section
@@ -336,7 +408,13 @@ class Config extends Singleton
             return $tmp;
         }
 
-        $section = $this->getFromDefaultConfig($name);
+        $section = $this->getFromGlobalConfig($name);
+        $sectionCommon = $this->getFromCommonConfig($name);
+        if(empty($section) && !empty($sectionCommon)) {
+            $section = $sectionCommon;
+        } elseif(!empty($section) && !empty($sectionCommon)) {
+            $section = $this->array_merge_recursive_distinct($section, $sectionCommon);
+        }
 
         if (isset($this->configLocal[$name])) {
             // local settings override the global defaults
@@ -345,7 +423,10 @@ class Config extends Singleton
                 : $this->configLocal[$name];
         }
 
-        if ($section === null) {
+        if ($section === null && $name = 'superuser') {
+            $user = $this->getConfigSuperUserForBackwardCompatibility();
+            return $user;
+        } else if ($section === null) {
             throw new Exception("Error while trying to read a specific config file entry <strong>'$name'</strong> from your configuration files.</b>If you just completed a Piwik upgrade, please check that the file config/global.ini.php was overwritten by the latest Piwik version.");
         }
 
@@ -356,10 +437,39 @@ class Config extends Singleton
         return $tmp;
     }
 
-    public function getFromDefaultConfig($name)
+    /**
+     * @deprecated since version 2.0.4
+     */
+    public function getConfigSuperUserForBackwardCompatibility()
+    {
+        try {
+            $db   = Db::get();
+            $user = $db->fetchRow("SELECT login, email, password
+                                FROM " . Common::prefixTable("user") . "
+                                WHERE superuser_access = 1
+                                ORDER BY date_registered ASC LIMIT 1");
+
+            if (!empty($user)) {
+                $user['bridge'] = 1;
+                return $user;
+            }
+        } catch (Exception $e) {}
+
+        return array();
+    }
+
+    public function getFromGlobalConfig($name)
     {
         if (isset($this->configGlobal[$name])) {
             return $this->configGlobal[$name];
+        }
+        return null;
+    }
+
+    public function getFromCommonConfig($name)
+    {
+        if (isset($this->configCommon[$name])) {
+            return $this->configCommon[$name];
         }
         return null;
     }
@@ -427,10 +537,11 @@ class Config extends Singleton
      *
      * @param array $configLocal
      * @param array $configGlobal
+     * @param array $configCommon
      * @param array $configCache
      * @return string
      */
-    public function dumpConfig($configLocal, $configGlobal, $configCache)
+    public function dumpConfig($configLocal, $configGlobal, $configCommon, $configCache)
     {
         $dirty = false;
 
@@ -440,6 +551,12 @@ class Config extends Singleton
         if (!$configCache) {
             return false;
         }
+
+        // If there is a common.config.ini.php, this will ensure config.ini.php does not duplicate its values
+        if(!empty($configCommon)) {
+            $configGlobal = $this->array_merge_recursive_distinct($configGlobal, $configCommon);
+        }
+
         if ($configLocal) {
             foreach ($configLocal as $name => $section) {
                 if (!isset($configCache[$name])) {
@@ -519,18 +636,20 @@ class Config extends Singleton
      *
      * @param array $configLocal
      * @param array $configGlobal
+     * @param array $configCommon
      * @param array $configCache
      * @param string $pathLocal
+     * @param bool $clear
      *
-     * @throws Exception if config file not writable
+     * @throws \Exception if config file not writable
      */
-    protected function writeConfig($configLocal, $configGlobal, $configCache, $pathLocal)
+    protected function writeConfig($configLocal, $configGlobal, $configCommon, $configCache, $pathLocal, $clear = true)
     {
         if ($this->isTest) {
             return;
         }
 
-        $output = $this->dumpConfig($configLocal, $configGlobal, $configCache);
+        $output = $this->dumpConfig($configLocal, $configGlobal, $configCommon, $configCache);
         if ($output !== false) {
             $success = @file_put_contents($pathLocal, $output);
             if (!$success) {
@@ -538,18 +657,20 @@ class Config extends Singleton
             }
         }
 
-        $this->clear();
+        if ($clear) {
+            $this->clear();
+        }
     }
 
     /**
      * Writes the current configuration to the **config.ini.php** file. Only writes options whose
      * values are different from the default.
-     * 
+     *
      * @api
      */
     public function forceSave()
     {
-        $this->writeConfig($this->configLocal, $this->configGlobal, $this->configCache, $this->pathLocal);
+        $this->writeConfig($this->configLocal, $this->configGlobal, $this->configCommon, $this->configCache, $this->pathLocal);
     }
 
     /**
@@ -559,5 +680,43 @@ class Config extends Singleton
     {
         $path = "config/" . basename($this->pathLocal);
         return new Exception(Piwik::translate('General_ConfigFileIsNotWritable', array("(" . $path . ")", "")));
+    }
+
+    /**
+     * array_merge_recursive does indeed merge arrays, but it converts values with duplicate
+     * keys to arrays rather than overwriting the value in the first array with the duplicate
+     * value in the second array, as array_merge does. I.e., with array_merge_recursive,
+     * this happens (documented behavior):
+     *
+     * array_merge_recursive(array('key' => 'org value'), array('key' => 'new value'));
+     *     => array('key' => array('org value', 'new value'));
+     *
+     * array_merge_recursive_distinct does not change the datatypes of the values in the arrays.
+     * Matching keys' values in the second array overwrite those in the first array, as is the
+     * case with array_merge, i.e.:
+     *
+     * array_merge_recursive_distinct(array('key' => 'org value'), array('key' => 'new value'));
+     *     => array('key' => array('new value'));
+     *
+     * Parameters are passed by reference, though only for performance reasons. They're not
+     * altered by this function.
+     *
+     * @param array $array1
+     * @param array $array2
+     * @return array
+     * @author Daniel <daniel (at) danielsmedegaardbuus (dot) dk>
+     * @author Gabriel Sobrinho <gabriel (dot) sobrinho (at) gmail (dot) com>
+     */
+    function array_merge_recursive_distinct ( array &$array1, array &$array2 )
+    {
+        $merged = $array1;
+        foreach ( $array2 as $key => &$value ) {
+            if ( is_array ( $value ) && isset ( $merged [$key] ) && is_array ( $merged [$key] ) ) {
+                $merged [$key] = $this->array_merge_recursive_distinct ( $merged [$key], $value );
+            } else {
+                $merged [$key] = $value;
+            }
+        }
+        return $merged;
     }
 }

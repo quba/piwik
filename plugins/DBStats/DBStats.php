@@ -5,8 +5,6 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik_Plugins
- * @package DBStats
  */
 namespace Piwik\Plugins\DBStats;
 
@@ -19,19 +17,17 @@ use Piwik\Plugins\CoreVisualizations\Visualizations\Graph;
 use Piwik\Plugins\CoreVisualizations\Visualizations\HtmlTable;
 use Piwik\Plugins\CoreVisualizations\Visualizations\JqplotGraph\Pie;
 use Piwik\ScheduledTask;
-use Piwik\ScheduledTime\Weekly;
 use Piwik\ScheduledTime;
 
 /**
  *
- * @package DBStats
  */
 class DBStats extends \Piwik\Plugin
 {
     const TIME_OF_LAST_TASK_RUN_OPTION = 'dbstats_time_of_last_cache_task_run';
 
     /**
-     * @see Piwik_Plugin::getListHooksRegistered
+     * @see Piwik\Plugin::getListHooksRegistered
      */
     public function getListHooksRegistered()
     {
@@ -40,7 +36,8 @@ class DBStats extends \Piwik\Plugin
             'Menu.Admin.addItems'             => 'addMenu',
             'TaskScheduler.getScheduledTasks' => 'getScheduledTasks',
             'ViewDataTable.configure'         => 'configureViewDataTable',
-            'ViewDataTable.getDefaultType'    => 'getDefaultTypeViewDataTable'
+            'ViewDataTable.getDefaultType'    => 'getDefaultTypeViewDataTable',
+            "TestingEnvironment.addHooks"     => 'setupTestEnvironment'
         );
     }
 
@@ -48,7 +45,7 @@ class DBStats extends \Piwik\Plugin
     {
         MenuAdmin::getInstance()->add('CoreAdminHome_MenuDiagnostic', 'DBStats_DatabaseUsage',
             array('module' => 'DBStats', 'action' => 'index'),
-            Piwik::isUserIsSuperUser(),
+            Piwik::hasUserSuperUserAccess(),
             $order = 6);
     }
 
@@ -376,5 +373,13 @@ class DBStats extends \Piwik\Plugin
         if ($lastGenerated !== false) {
             $view->config->show_footer_message = Piwik::translate('Mobile_LastUpdated', $lastGenerated);
         }
+    }
+
+    public function setupTestEnvironment($environment)
+    {
+        Piwik::addAction("MySQLMetadataProvider.createDao", function (&$dao) {
+            require_once dirname(__FILE__) . "/tests/Mocks/MockDataAccess.php";
+            $dao = new Mocks\MockDataAccess();
+        });
     }
 }

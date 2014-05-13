@@ -4,8 +4,6 @@
  *
  * @link     http://piwik.org
  * @license  http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
- * @category Piwik_Plugins
- * @package  Dashboard
  */
 namespace Piwik\Plugins\Dashboard;
 
@@ -20,7 +18,6 @@ use Piwik\WidgetsList;
 /**
  * Dashboard Controller
  *
- * @package Dashboard
  */
 class Controller extends \Piwik\Plugin\Controller
 {
@@ -53,13 +50,13 @@ class Controller extends \Piwik\Plugin\Controller
     public function embeddedIndex()
     {
         $view = $this->_getDashboardView('@Dashboard/embeddedIndex');
-
         return $view->render();
     }
 
     public function index()
     {
         $view = $this->_getDashboardView('@Dashboard/index');
+        $view->dashboardSettingsControl = new DashboardManagerControl();
         $view->dashboards = array();
         if (!Piwik::isUserIsAnonymous()) {
             $login = Piwik::getCurrentUserLogin();
@@ -67,6 +64,19 @@ class Controller extends \Piwik\Plugin\Controller
             $view->dashboards = $this->dashboard->getAllDashboards($login);
         }
         return $view->render();
+    }
+
+    public function getDashboardSettingsControl()
+    {
+        $view = new DashboardManagerControl();
+        $result = $view->render();
+
+        if (Common::getRequestVar('includeWidgetFactory', false)) {
+            $factoryTemplateView = new View("@Dashboard/_widgetFactoryTemplate");
+            $result .= $factoryTemplateView->render();
+        }
+
+        return $result;
     }
 
     public function getAvailableWidgets()
@@ -222,7 +232,7 @@ class Controller extends \Piwik\Plugin\Controller
     {
         $this->checkTokenInUrl();
 
-        if (!Piwik::isUserIsSuperUser()) {
+        if (!Piwik::hasUserSuperUserAccess()) {
             return '0';
         }
         $login = Piwik::getCurrentUserLogin();
@@ -274,7 +284,7 @@ class Controller extends \Piwik\Plugin\Controller
     {
         $this->checkTokenInUrl();
 
-        if (Piwik::isUserIsSuperUser()) {
+        if (Piwik::hasUserSuperUserAccess()) {
             $layout = Common::unsanitizeInputValue(Common::getRequestVar('layout'));
             $paramsBind = array('', '1', $layout, $layout);
             $query = sprintf('INSERT INTO %s (login, iddashboard, layout) VALUES (?,?,?) ON DUPLICATE KEY UPDATE layout=?',

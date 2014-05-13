@@ -79,9 +79,6 @@
         "ViewAndAddAnnotations": "%s için notları göster ve yeni not ekle...",
         "YouCannotModifyThisNote": "Bunu değiştiremezsiniz. Bunun için bu siteye yönetici erişiminiz olması gerekli."
     },
-    "AnonymizeIP": {
-        "PluginDescription": "Yerel gizlilik kurallarına uymak için ziyaretçi IP adreslerini gizleyin."
-    },
     "API": {
         "GenerateVisits": "Eğer bugün için bir veri yoksa öncelikle %s eklentisiyle biraz veri oluşturabilirsiniz. %s eklentisini aktifleştirin, sonrasında Piwik Yönetim alanından 'Ziyaretçi Oluşturucu' menüsüne tıklayınız.",
         "KeepTokenSecret": "token_auth kullanıcı adı ve şifreniz kadar gizlidir, %s kimseyle paylaşmayınız%s!",
@@ -105,10 +102,12 @@
         "EmailServerSettings": "E-Posta sunucusu ayarları",
         "ForBetaTestersOnly": "Yalnızca beta test edenler için",
         "ImageTracking": "Resimle İzleme",
+        "ImageTrackingIntro1": "Ziyaretçi JavaScript'i devre dışı bıraktığında veya JavaScript kullanılamadığında, ziyaretçileri takip etmek için resim kullanabilirsiniz.",
         "ImageTrackingIntro2": "Aşağıdaki linke tıklayın ve oluşturulan kodu HTML sayfanıza yapıştırın. Bunu eğer geri javascript geri beslemek için kullanacaksanız etiketler %1$s olacaktır",
         "ImageTrackingLink": "Resimle İzleme Linki",
         "ImportingServerLogs": "Sunucu Loglarını İçe Aktar",
         "InvalidPluginsWarning": "Eklentiler %1$s ve %2$s birbiriyle uyumlu olmadığından yüklenemedi.",
+        "InvalidPluginsYouCanUninstall": "Eklentileri %1$sEklenti Yönetimi%2$s sayfasından güncelleştirebilir veya kaldırabilirsiniz.",
         "JavaScriptTracking": "Javascript İzleme Kodu",
         "JSTracking_CampaignKwdParam": "Kampanya Anahtar Kelime Parametreleri",
         "JSTracking_CampaignNameParam": "Kampanya Parametresi",
@@ -129,7 +128,6 @@
         "JSTrackingIntro4": "Eğer Javascript izleme kodu kullanmak istemiyorsanız aşağıdaki%2$s linke tıklayarak izleme resmi oluşturabilirsiniz%1$s.",
         "LatestBetaRelease": "En son beta sürümü",
         "LatestStableRelease": "En son kararlı sürüm",
-        "LogoNotWriteable": "Logoyu değiştirmek için, Piwik için tema dizinindeki logo dosyalarına yazma hakkı gerekir: %s",
         "LogoUpload": "Yüklemek için logo seçiniz",
         "MenuDiagnostic": "tehşis",
         "MenuGeneralSettings": "Genel Ayarlar",
@@ -259,32 +257,16 @@
         "WidgetsAndDashboard": "Rapor kutuları ve Panel"
     },
     "Feedback": {
-        "CategoryHire": "Bir Piwik danışmanına sorun",
-        "CategorySecurity": "Güvenlik raporu bildirin",
-        "CategoryShareStory": "Piwik başarı hikayeleri paylaşın",
-        "CategorySponsor": "Piwik'e sponsor olun",
         "ContactThePiwikTeam": "Piwik takımıyla bağlantı kurun!",
-        "DetailsPlease": "(lütfen detayları ekleyin)",
         "DoYouHaveBugReportOrFeatureRequest": "Hata raporu veya özellik öneriniz mi var?",
-        "ExceptionBodyLength": "Mesajınız en az %s karakter uzunluğunda olmalı",
-        "ExceptionNoUrls": "Spam mesajlardan kaçınmak için mesajınız URL içeremez.",
-        "HowToAnonymizeIP": "Ziyaretçilerimin IP adreslerini veritabanımda nasıl gizlerim?",
-        "HowToExclude": "Kendi ziyaretlerimi nasıl hariç tutarım?",
         "IWantTo": "İstiyorum:",
         "LearnWaysToParticipate": "%sOrtak olabileceğiniz%s tüm yolları öğrenin",
         "ManuallySendEmailTo": "Lütfen mesajınızı elle yollayın",
-        "MessageSent": "Mesajınız Piwik takımına iletilmiştir.",
-        "MyEmailAddress": "E-posta adresim:",
-        "MyMessage": "Mesajım:",
         "PluginDescription": "Piwik takımına geribildirimlerinizi gönderin. Düşüncelerinizi ve önerilerinizi paylaşın!",
         "SendFeedback": "Geribildirim Yollayın",
         "SpecialRequest": "Piwik takımına özel bir sorunuz var mı?",
         "ThankYou": "Piwik'i daha iyi yapmamıza yardım ettiğiniz için teşekkür ederiz!",
-        "ThePiwikTeam": "Piwik Takımı",
-        "ViewAnswersToFAQ": "%sSık sorulan soruların%s yanıtlarını göster",
-        "VisitTheForums": "%sForumları%s ziyaret edin",
-        "WhyAreMyVisitsNoTracked": "Neden sitemin ziyaretleri izlenmiyor?",
-        "WhyWrongCountry": "Neden Piwik benim ziyaretlerimi yanlış ülkede gösteriyor?"
+        "VisitTheForums": "%sForumları%s ziyaret edin"
     },
     "General": {
         "AboutPiwikX": "Piwik %s Hakkında",
@@ -491,7 +473,6 @@
         "Password": "Şifre",
         "Period": "Zaman aralığı",
         "Piechart": "Pasta grafik",
-        "PiwikXIsAvailablePleaseNotifyPiwikAdmin": "%s mevcut. Lütfen site yöneticisine bildiriniz.",
         "PiwikXIsAvailablePleaseUpdateNow": "Piwik %1$s kullanılabilir durumda.. %2$s Lütfen şimdi güncelleyin!%3$s (%4$s değişiklikleri%5$s görün).",
         "PleaseSpecifyValue": "Lütfen '%s' için bir değer belirtiniz.",
         "PleaseUpdatePiwik": "Lütfen Piwik'inizi güncelleyin",
@@ -624,8 +605,6 @@
         "CommunityNewsletter": "Yeni eklentiler, yeni özellikler gibi güncellemeleri bana eposta ile bildir.",
         "Congratulations": "Tebrikler",
         "CongratulationsHelp": "<p>Tebrikler! Piwik Başarıyla kuruldu.<\/p><p>JavaScript kodunu sayfalarınıza yerleştirdiğinizden emin olun ve ilk ziyaretçilerinizi beklemeye başlayın!<\/p>",
-        "DatabaseCheck": "Veritabanı kontrol",
-        "DatabaseClientVersion": "Veritabanı istemci versiyonu",
         "DatabaseCreation": "Veritabaı oluşturma",
         "DatabaseServerVersion": "Veritabanı sunucu versiyonu",
         "DatabaseSetup": "Veritabanı Yüklemesi",
@@ -662,7 +641,6 @@
         "SystemCheckMemoryLimit": "Hafıza limiti",
         "SystemCheckOtherExtensions": "Diğer eklentiler",
         "SystemCheckPhp": "PHP versiyonu",
-        "SystemCheckSecureProtocol": "Güvenli protokol",
         "SystemCheckWarning": "Piwik normal olarak çalışacaktır ancak bazı özellikler eksik olacak.",
         "Tables": "Tablolar oluşturuluyor",
         "TablesCreatedSuccess": "Tablolar başarılı bir şekilde yaratıldı!",
@@ -699,6 +677,7 @@
         "LoginUseHttps": "https kullan"
     },
     "PrivacyManager": {
+        "AnonymizeIpInlineHelp": "Yerel gizlilik kurallarına uymak için ziyaretçi IP adreslerini gizleyin.",
         "TeaserHeadline": "Gizlilik Ayarları"
     },
     "Provider": {
@@ -1294,7 +1273,6 @@
         "ReportDateToLoadByDefault": "Varsayılarak yüklenen rapor tarihi",
         "ReportToLoadByDefault": "Varsayılan rapor yüklendi.",
         "TheLoginScreen": "Giriş ekranı",
-        "TheSuperUserAliasCannotBeChanged": "Süper Kullanıcı adı değiştirilemez.",
         "TypeYourPasswordAgain": "Yeni parolanizi yeniden yazınız",
         "User": "Kullanıcı",
         "UsersManagement": "Kullanıcı Yönetimleri",

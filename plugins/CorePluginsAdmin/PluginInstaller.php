@@ -5,20 +5,18 @@
  * @link http://piwik.org
  * @license http://www.gnu.org/licenses/gpl-3.0.html GPL v3 or later
  *
- * @category Piwik_Plugins
- * @package CorePluginsAdmin
  */
 namespace Piwik\Plugins\CorePluginsAdmin;
 
 use Piwik\Filechecks;
 use Piwik\Filesystem;
 use Piwik\Piwik;
+use Piwik\Plugin\Dependency as PluginDependency;
 use Piwik\SettingsPiwik;
 use Piwik\Unzip;
 
 /**
  *
- * @package CorePluginsAdmin
  */
 class PluginInstaller
 {
@@ -40,12 +38,23 @@ class PluginInstaller
         $tmpPluginZip = SettingsPiwik::rewriteTmpPathWithHostname($tmpPluginZip);
         $tmpPluginFolder = SettingsPiwik::rewriteTmpPathWithHostname($tmpPluginFolder);
 
-        $this->makeSureFoldersAreWritable();
-        $this->makeSurePluginNameIsValid();
-        $this->downloadPluginFromMarketplace($tmpPluginZip);
-        $this->extractPluginFiles($tmpPluginZip, $tmpPluginFolder);
-        $this->makeSurePluginJsonExists($tmpPluginFolder);
-        $this->copyPluginToDestination($tmpPluginFolder);
+        try {
+            $this->makeSureFoldersAreWritable();
+            $this->makeSurePluginNameIsValid();
+            $this->downloadPluginFromMarketplace($tmpPluginZip);
+            $this->extractPluginFiles($tmpPluginZip, $tmpPluginFolder);
+            $this->makeSurePluginJsonExists($tmpPluginFolder);
+            $metadata = $this->getPluginMetadataIfValid($tmpPluginFolder);
+            $this->makeSureThereAreNoMissingRequirements($metadata);
+            $this->copyPluginToDestination($tmpPluginFolder);
+
+        } catch (\Exception $e) {
+
+            $this->removeFileIfExists($tmpPluginZip);
+            $this->removeFolderIfExists($tmpPluginFolder);
+
+            throw $e;
+        }
 
         $this->removeFileIfExists($tmpPluginZip);
         $this->removeFolderIfExists($tmpPluginFolder);
@@ -56,16 +65,27 @@ class PluginInstaller
         $tmpPluginFolder = PIWIK_USER_PATH . self::PATH_TO_DOWNLOAD . $this->pluginName;
         $tmpPluginFolder = SettingsPiwik::rewriteTmpPathWithHostname($tmpPluginFolder);
 
-        $this->makeSureFoldersAreWritable();
-        $this->extractPluginFiles($pathToZip, $tmpPluginFolder);
+        try {
+            $this->makeSureFoldersAreWritable();
+            $this->extractPluginFiles($pathToZip, $tmpPluginFolder);
 
-        $this->makeSurePluginJsonExists($tmpPluginFolder);
-        $metadata = $this->getPluginMetadataIfValid($tmpPluginFolder);
+            $this->makeSurePluginJsonExists($tmpPluginFolder);
+            $metadata = $this->getPluginMetadataIfValid($tmpPluginFolder);
+            $this->makeSureThereAreNoMissingRequirements($metadata);
 
-        $this->pluginName = $metadata->name;
+            $this->pluginName = $metadata->name;
 
-        $this->fixPluginFolderIfNeeded($tmpPluginFolder);
-        $this->copyPluginToDestination($tmpPluginFolder);
+            $this->fixPluginFolderIfNeeded($tmpPluginFolder);
+            $this->copyPluginToDestination($tmpPluginFolder);
+
+        } catch (\Exception $e) {
+
+            $this->removeFileIfExists($pathToZip);
+            $this->removeFolderIfExists($tmpPluginFolder);
+
+            throw $e;
+        }
+
         $this->removeFileIfExists($pathToZip);
         $this->removeFolderIfExists($tmpPluginFolder);
 
@@ -125,6 +145,27 @@ class PluginInstaller
 
         if (!file_exists($pluginJsonPath)) {
             throw new PluginInstallerException('Plugin is not valid, it is missing the plugin.json file.');
+        }
+    }
+
+    private function makeSureThereAreNoMissingRequirements($metadata)
+    {
+        $requires = array();
+        if(!empty($metadata->require)) {
+            $requires = (array) $metadata->require;
+        }
+
+        $dependency = new PluginDependency();
+        $missingDependencies = $dependency->getMissingDependencies($requires);
+
+        if (!empty($missingDependencies)) {
+            $message = '';
+            foreach ($missingDependencies as $dep) {
+                $params   = array(ucfirst($dep['requirement']), $dep['actualVersion'], $dep['requiredVersion']);
+                $message .= Piwik::translate('CorePluginsAdmin_MissingRequirementsNotice', $params);
+            }
+
+            throw new PluginInstallerException($message);
         }
     }
 

@@ -44,14 +44,19 @@ class FakeAccess
         self::$idSitesView = $ids;
     }
 
-    public static function checkUserIsSuperUser()
+    public static function hasSuperUserAccess()
+    {
+        return self::$superUser;
+    }
+
+    public static function checkUserHasSuperUserAccess()
     {
         if (!self::$superUser) {
-            throw new Exception("checkUserIsSuperUser Fake exception // string not to be tested");
+            throw new Exception("checkUserHasSuperUserAccess Fake exception // string not to be tested");
         }
     }
 
-    public static function setSuperUser($bool = true)
+    public static function setSuperUserAccess($bool = true)
     {
         self::$superUser = $bool;
     }
@@ -79,11 +84,11 @@ class FakeAccess
     //means at least view access
     public static function checkUserHasViewAccess($idSites)
     {
-        if (!self::$superUser) {
-            $websitesAccess = array_merge(self::$idSitesView, self::$idSitesAdmin);
-        } else {
-            $websitesAccess = API::getInstance()->getAllSitesId();
+        if (self::$superUser) {
+            return;
         }
+        
+        $websitesAccess = array_merge(self::$idSitesView, self::$idSitesAdmin);
 
         if (!is_array($idSites)) {
             if ($idSites == 'all') {
@@ -123,7 +128,7 @@ class FakeAccess
                 throw new Exception("checkUserHasSomeAdminAccess Fake exception // string not to be tested");
             }
         } else {
-            return; //super user has some admin rights
+            return; //Super User has some admin rights
         }
     }
 
@@ -164,9 +169,5 @@ class FakeAccess
         }
         return $result;
     }
-    
-    public function getSuperUserLogin()
-    {
-        return self::$superUserLogin;
-    }
+
 }
